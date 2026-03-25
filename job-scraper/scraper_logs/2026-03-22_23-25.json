@@ -1,0 +1,53 @@
+{
+  "timestamp": "2026-03-22T23:25:53.545806",
+  "source": "..\\job-import-batch.csv",
+  "dry_run": true,
+  "profiles_run": 1,
+  "queries_executed": 1,
+  "total_found": 19,
+  "after_filter": 19,
+  "imported": 0,
+  "duplicates": 16,
+  "flagged": 3,
+  "flagged_jobs": [
+    {
+      "status": "Researching",
+      "date_added": "2026-03-22",
+      "work_type": "Remote",
+      "source": "Company Site",
+      "priority": "High",
+      "company_name": "Hagerty Consulting",
+      "role_title": "Comprehensive Disaster Recovery Project Manager",
+      "location": "Remote",
+      "salary_min": 115000,
+      "salary_max": 150000,
+      "_fuzzy_match": "hagerty consulting | disaster recovery consultant  (score: 73.50427350427351)"
+    },
+    {
+      "status": "Ready to Apply",
+      "date_added": "2026-03-22",
+      "work_type": "Remote",
+      "source": "Company Site",
+      "priority": "High",
+      "company_name": "ICF International",
+      "role_title": "Disaster Recovery PA Specialist",
+      "location": "Remote (Gulf Coast preferred)",
+      "salary_min": null,
+      "salary_max": null,
+      "_fuzzy_match": "icf international | emergency management specialist  (score: 72.54901960784314)"
+    },
+    {
+      "status": "Researching",
+      "date_added": "2026-03-22",
+      "work_type": "Remote",
+      "source": "Indeed",
+      "priority": "Medium",
+      "company_name": "ServiceTitan",
+      "role_title": "Enterprise Implementation Consultant",
+      "location": "Remote",
+      "salary_min": null,
+      "salary_max": null,
+      "_fuzzy_match": "salesforce | implementation consultant  (score: 74.15730337078652)"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-03-24T10:38:22.219728",
+  "dry_run": true,
+  "profiles_run": 0,
+  "queries_executed": 0,
+  "total_found": 0,
+  "after_filter": 18,
+  "imported": 14,
+  "duplicates": 2,
+  "flagged": 2,
+  "flagged_jobs": [
+    {
+      "company_name": "Palantir",
+      "role_title": "Technical Program Manager (TPM)",
+      "status": "Researching",
+      "date_added": "2026-03-24",
+      "date_applied": null,
+      "salary_min": null,
+      "salary_max": null,
+      "location": "New York, NY",
+      "work_type": "On-site",
+      "source": "Company Site",
+      "job_url": "https://jobs.lever.co/palantir/7eb0dedb-37ee-4175-b29f-10a9e4340076",
+      "notes": "Imported via company watcher",
+      "priority": "Medium",
+      "_fuzzy_match": "tetra tech | fema pa program manager  (score: 71.7948717948718)"
+    },
+    {
+      "company_name": "Witt O'Brien's",
+      "role_title": "Hazard Mitigation Specialist",
+      "status": "Researching",
+      "date_added": "2026-03-24",
+      "date_applied": null,
+      "salary_min": null,
+      "salary_max": null,
+      "location": "US - TX - Houston",
+      "work_type": "On-site",
+      "source": "Company Site",
+      "job_url": "https://wittobriens.wd12.myworkdayjobs.com/Careers/job/US---TX---Houston/Hazard-Mitigation-Specialist_R3149",
+      "notes": "Imported via company watcher",
+      "priority": "Medium",
+      "_fuzzy_match": "witt o'brien's | disaster recovery specialist  (score: 71.11111111111111)"
+    }
+  ]
+}

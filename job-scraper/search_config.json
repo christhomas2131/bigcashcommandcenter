@@ -1,0 +1,291 @@
+{
+  "apis": {
+    "jsearch": {
+      "enabled": false,
+      "api_key": "12dfe912cdmsh0318cb30fddba42p1311b7jsn8f0271c2a9bd",
+      "base_url": "https://jsearch.p.rapidapi.com"
+    },
+    "adzuna": {
+      "enabled": true,
+      "app_id": "d1787b78",
+      "app_key": "ec1c535043c22def6364dbe1e3a845c0",
+      "country": "us"
+    },
+    "usajobs": {
+      "enabled": true,
+      "email": "chrisball2141@gmail.com",
+      "api_key": "+fbRHVR6E5us3+8DTxyUTl/Nv+xoEmnnVsp+WF9dehU=",
+      "location": "California",
+      "extra_queries": [
+        {"keyword": "FEMA disaster recovery"},
+        {"keyword": "CDBG-DR program manager"},
+        {"keyword": "emergency management specialist"},
+        {"keyword": "hazard mitigation specialist"},
+        {"keyword": "floodplain manager"},
+        {"keyword": "public assistance officer FEMA"},
+        {"keyword": "grants management specialist HUD"},
+        {"keyword": "homeland security emergency management"},
+        {"keyword": "disaster recovery program analyst"},
+        {"keyword": "resilience planning coordinator"}
+      ]
+    }
+  },
+  "search_profiles": [
+    {
+      "name": "Disaster Recovery / Emergency Management",
+      "queries": [
+        "disaster recovery consultant remote",
+        "FEMA public assistance specialist",
+        "emergency management consultant remote",
+        "disaster recovery project manager",
+        "grant management specialist FEMA",
+        "hazard mitigation project manager"
+      ],
+      "target_companies": [
+        "Hagerty Consulting",
+        "ICF",
+        "Tetra Tech",
+        "Tidal Basin",
+        "AC Disaster Consulting",
+        "Witt O'Brien's",
+        "Guidehouse",
+        "AECOM",
+        "Stantec",
+        "CDM Smith"
+      ],
+      "default_priority": "High"
+    },
+    {
+      "name": "Tech Pivot - Implementation / Customer Success",
+      "queries": [
+        "implementation consultant remote",
+        "implementation specialist remote",
+        "onboarding consultant remote",
+        "solutions consultant remote"
+      ],
+      "target_companies": [
+        "Salesforce",
+        "ServiceTitan",
+        "Plaid",
+        "monday.com",
+        "Notion",
+        "PagerDuty",
+        "Asana"
+      ],
+      "default_priority": "Medium"
+    },
+    {
+      "name": "Tech - Solutions Engineer / Sales / TAM",
+      "queries": [
+        "solutions engineer remote",
+        "solutions engineer San Francisco",
+        "solutions engineer Oakland",
+        "solutions engineer Richmond California",
+        "solutions engineer Marin County",
+        "pre-sales engineer remote",
+        "pre-sales engineer San Francisco",
+        "pre-sales engineer Oakland",
+        "sales engineer San Francisco",
+        "sales engineer Oakland",
+        "technical account manager remote",
+        "technical account manager San Francisco",
+        "technical account manager Oakland",
+        "technical account manager Marin County",
+        "enterprise account manager SaaS remote",
+        "enterprise account manager San Francisco",
+        "enterprise account manager Oakland",
+        "strategic customer success manager San Francisco",
+        "strategic customer success manager Oakland",
+        "partner solutions manager remote",
+        "partner solutions manager San Francisco",
+        "technical sales consultant remote",
+        "technical sales consultant San Francisco",
+        "revenue enablement manager remote",
+        "solutions consultant enterprise San Francisco",
+        "solutions consultant enterprise Oakland",
+        "solutions consultant Richmond California"
+      ],
+      "target_companies": [
+        "Salesforce",
+        "Slack",
+        "Twilio",
+        "Zendesk",
+        "Splunk",
+        "Okta",
+        "Datadog",
+        "Snowflake",
+        "Palantir",
+        "monday.com",
+        "Asana",
+        "PagerDuty",
+        "Notion",
+        "HubSpot",
+        "ServiceNow",
+        "Workday",
+        "Adobe",
+        "Stripe",
+        "Rippling",
+        "Brex"
+      ],
+      "default_priority": "High"
+    },
+    {
+      "name": "GovTech",
+      "queries": [
+        "government account executive remote",
+        "government account executive San Francisco",
+        "government account executive Oakland",
+        "public sector account executive remote",
+        "public sector account executive San Francisco",
+        "public sector solutions engineer remote",
+        "public sector solutions engineer San Francisco",
+        "public sector solutions engineer Oakland",
+        "federal solutions engineer remote",
+        "state local government sales remote",
+        "state local government account manager San Francisco",
+        "state local government account manager Oakland",
+        "govtech account executive remote",
+        "govtech account executive San Francisco",
+        "govtech customer success manager remote",
+        "govtech customer success manager San Francisco",
+        "federal customer success manager remote",
+        "government software sales remote",
+        "government software sales San Francisco",
+        "civic technology program manager remote",
+        "civic technology program manager San Francisco",
+        "civic technology program manager Oakland",
+        "public sector implementation manager remote",
+        "public sector implementation manager San Francisco",
+        "emergency management software sales remote",
+        "disaster recovery software account executive remote",
+        "grants management software sales remote",
+        "government SaaS account executive remote",
+        "government SaaS account executive San Francisco",
+        "government SaaS solutions engineer remote"
+      ],
+      "target_companies": [
+        "Tyler Technologies",
+        "Granicus",
+        "OpenGov",
+        "Accela",
+        "Esri",
+        "Motorola Solutions",
+        "Axon",
+        "Mark43",
+        "Maximus",
+        "Leidos",
+        "Booz Allen Hamilton",
+        "SAIC",
+        "Palantir",
+        "Verint",
+        "Microsoft",
+        "Google",
+        "Amazon Web Services",
+        "Salesforce",
+        "ServiceNow",
+        "Socrata"
+      ],
+      "default_priority": "High"
+    },
+    {
+      "name": "Bay Area / California",
+      "queries": [
+        "emergency management San Francisco",
+        "emergency management Oakland",
+        "emergency management Richmond California",
+        "emergency management Marin County",
+        "disaster recovery manager San Francisco",
+        "disaster recovery manager Oakland",
+        "program manager Oakland",
+        "program manager Richmond California",
+        "program manager Marin County",
+        "grants management San Francisco",
+        "grants management Oakland",
+        "solutions engineer Oakland",
+        "solutions engineer Richmond California",
+        "solutions engineer Marin County",
+        "technical account manager Oakland",
+        "technical account manager Marin County",
+        "customer success manager San Francisco",
+        "customer success manager Oakland",
+        "government consulting San Francisco",
+        "government consulting Oakland",
+        "government consulting Marin County",
+        "sales engineer Oakland",
+        "sales engineer Richmond California"
+      ],
+      "target_companies": [
+        "Hagerty Consulting",
+        "ICF",
+        "Guidehouse",
+        "Deloitte",
+        "KPMG"
+      ],
+      "default_priority": "High"
+    }
+  ],
+  "target_companies": [
+    {
+      "name": "Fors Marsh Group",
+      "ats": "breezy",
+      "slug": "fors-marsh-group"
+    },
+    {
+      "name": "Dewberry",
+      "ats": "icims",
+      "subdomain": "careers-dewberry"
+    },
+    {
+      "name": "Palantir",
+      "ats": "lever",
+      "slug": "palantir"
+    },
+    {
+      "name": "ICF",
+      "ats": "workday",
+      "tenant": "icf",
+      "wd_num": 5,
+      "site": "ICFExternal_Career_Site"
+    },
+    {
+      "name": "Witt O'Brien's",
+      "ats": "workday",
+      "tenant": "wittobriens",
+      "wd_num": 12,
+      "site": "Careers"
+    },
+    {
+      "name": "EisnerAmper",
+      "ats": "workday",
+      "tenant": "eisneramper",
+      "wd_num": 1,
+      "site": "EisnerAmper_External"
+    },
+    {
+      "name": "Cherry Bekaert",
+      "ats": "workday",
+      "tenant": "cbh",
+      "wd_num": 12,
+      "site": "CherryBekaert"
+    },
+    {
+      "name": "KPMG",
+      "ats": "kpmg",
+      "search_terms": ["disaster recovery", "grants management", "floodplain"]
+    },
+    {
+      "name": "Deloitte",
+      "ats": "deloitte",
+      "search_terms": ["disaster recovery", "grants management", "floodplain", "emergency management", "hazard mitigation"]
+    }
+  ],
+  "filters": {
+    "work_types": ["Remote", "Hybrid"],
+    "exclude_keywords": [
+      "senior director", "VP", "vice president", "CTO", "intern", "internship"
+    ],
+    "min_salary": 60000,
+    "max_results_per_query": 20,
+    "days_posted": 30
+  }
+}

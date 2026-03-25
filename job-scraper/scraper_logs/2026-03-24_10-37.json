@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-03-24T10:37:07.554254",
+  "dry_run": true,
+  "profiles_run": 0,
+  "queries_executed": 0,
+  "total_found": 20,
+  "after_filter": 3,
+  "imported": 3,
+  "duplicates": 0,
+  "flagged": 0,
+  "flagged_jobs": []
+}
