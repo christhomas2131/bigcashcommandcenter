@@ -68,25 +68,31 @@ def get_conn() -> Generator:
     Commits on clean exit, rolls back on exception, always returns to pool.
     Auto-retries once on stale/dropped connections (InterfaceError, OperationalError).
     """
-    pool, conn = _fresh_conn()
-    try:
-        yield conn
-        conn.commit()
-    except _STALE_ERRORS:
-        # Server dropped the connection — reset pool and let caller retry.
-        close_pool()
-        raise
-    except Exception:
+    for attempt in range(2):
+        pool, conn = _fresh_conn()
         try:
-            conn.rollback()
+            yield conn
+            conn.commit()
+            return
+        except _STALE_ERRORS:
+            # Server dropped the connection — reset pool and retry once.
+            try:
+                pool.putconn(conn)
+            except Exception:
+                pass
+            close_pool()
+            if attempt == 1:
+                raise
         except Exception:
-            pass
-        raise
-    finally:
-        try:
-            pool.putconn(conn)
-        except Exception:
-            pass
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+            try:
+                pool.putconn(conn)
+            except Exception:
+                pass
+            raise
 
 
 @contextmanager

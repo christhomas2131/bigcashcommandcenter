@@ -7,6 +7,9 @@ On Render, set these in the service's Environment tab.
 """
 
 import os
+from pathlib import Path
+
+_HERE = Path(__file__).parent
 
 from dotenv import load_dotenv
 
@@ -56,5 +59,5 @@ USAJOBS_API_KEY: str = os.environ.get("USAJOBS_API_KEY", "")
 # Path to the search_config.json that controls queries, companies, and filters
 INGESTION_SEARCH_CONFIG: str = os.environ.get(
     "INGESTION_SEARCH_CONFIG",
-    "job-scraper/search_config.json",
+    str(_HERE / "job-scraper" / "search_config.json"),
 )

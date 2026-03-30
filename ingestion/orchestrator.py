@@ -18,6 +18,8 @@ import config
 from db import repository as repo
 from ingestion.dedup import deduplicate
 from ingestion.sources.company_watcher import run_company_watcher
+from ingestion.sources.iaem import scrape_iaem
+from ingestion.sources.asfpm import scrape_asfpm
 from ingestion.sources.jsearch import JSearchClient
 from ingestion.sources.adzuna import AdzunaClient
 from ingestion.sources.usajobs import USAJobsClient
@@ -214,10 +216,36 @@ def run(
                 log.error(f"Company watcher failed: {exc}")
                 report["error_count"] += 1
 
+        # ── IAEM job board ─────────────────────────────────────────────────
+        iaem_jobs: list[dict] = []
+        iaem_cfg = api_config.get("iaem", {})
+        if iaem_cfg.get("enabled", True):
+            log.info("\n── IAEM Career Center ──")
+            try:
+                iaem_jobs = scrape_iaem(max_pages=iaem_cfg.get("max_pages", 4))
+                log.info(f"IAEM total: {len(iaem_jobs)} jobs")
+            except Exception as exc:
+                log.error(f"IAEM scraper failed: {exc}")
+                report["error_count"] += 1
+
+        # ── ASFPM job board ────────────────────────────────────────────────
+        asfpm_jobs: list[dict] = []
+        asfpm_cfg = api_config.get("asfpm", {})
+        if asfpm_cfg.get("enabled", False):
+            log.info("\n── ASFPM Career Center ──")
+            try:
+                asfpm_jobs = scrape_asfpm(max_pages=asfpm_cfg.get("max_pages", 4))
+                log.info(f"ASFPM total: {len(asfpm_jobs)} jobs")
+            except Exception as exc:
+                log.error(f"ASFPM scraper failed: {exc}")
+                report["error_count"] += 1
+
         # ── Filtering ─────────────────────────────────────────────────────
-        api_filtered = _apply_api_filters(all_normalised, filters)
-        co_filtered  = _apply_title_filter(company_jobs, filters)
-        combined     = api_filtered + co_filtered
+        api_filtered   = _apply_api_filters(all_normalised, filters)
+        co_filtered    = _apply_title_filter(company_jobs, filters)
+        iaem_filtered  = _apply_title_filter(iaem_jobs, filters)
+        asfpm_filtered = _apply_title_filter(asfpm_jobs, filters)
+        combined       = api_filtered + co_filtered + iaem_filtered + asfpm_filtered
 
         report["jobs_found"] = len(combined)
         log.info(f"\nFiltering: {len(all_normalised) + len(company_jobs)} → {len(combined)}")

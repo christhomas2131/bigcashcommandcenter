@@ -1,5 +1,13 @@
 {
   "apis": {
+    "iaem": {
+      "enabled": true,
+      "max_pages": 6
+    },
+    "asfpm": {
+      "enabled": false,
+      "max_pages": 4
+    },
     "jsearch": {
       "enabled": false,
       "api_key": "12dfe912cdmsh0318cb30fddba42p1311b7jsn8f0271c2a9bd",
@@ -186,6 +194,34 @@
         "Socrata"
       ],
       "default_priority": "High"
+    },
+    {
+      "name": "Floodplain Management / ASFPM",
+      "queries": [
+        "floodplain manager",
+        "floodplain administrator",
+        "NFIP coordinator",
+        "certified floodplain manager",
+        "floodplain management consultant",
+        "stormwater program manager",
+        "flood insurance specialist",
+        "floodplain compliance specialist",
+        "watershed program manager",
+        "flood mitigation specialist"
+      ],
+      "target_companies": [
+        "Dewberry",
+        "Michael Baker International",
+        "AECOM",
+        "WSP",
+        "Arcadis",
+        "Wood Environment",
+        "APTIM",
+        "Tetra Tech",
+        "Freese and Nichols",
+        "Stantec"
+      ],
+      "default_priority": "Medium"
     },
     {
       "name": "Bay Area / California",
