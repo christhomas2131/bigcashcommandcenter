@@ -28,9 +28,10 @@ def _get_pool() -> psycopg2.pool.ThreadedConnectionPool:
         with _lock:
             if _pool is None:  # double-checked locking
                 _pool = psycopg2.pool.ThreadedConnectionPool(
-                    minconn=1,
-                    maxconn=5,
+                    minconn=2,
+                    maxconn=10,
                     dsn=config.get_database_url(),
+                    connect_timeout=5,
                 )
     return _pool
 

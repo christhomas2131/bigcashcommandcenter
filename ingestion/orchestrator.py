@@ -150,6 +150,7 @@ def run(
         all_normalised: list[dict] = []
 
         # ── API keyword search ─────────────────────────────────────────────
+        clients: dict = {}
         if not companies_only:
             clients = _init_clients(api_config)
             profiles = search_cfg.get("search_profiles", [])

@@ -4,3 +4,6 @@ __pycache__/
 *.pyo
 .streamlit/secrets.toml
 *.db
+.venv/
+venv/
+logs/
