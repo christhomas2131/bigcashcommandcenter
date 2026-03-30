@@ -67,33 +67,22 @@ def get_conn() -> Generator:
     """
     Yield a pooled Postgres connection.
     Commits on clean exit, rolls back on exception, always returns to pool.
-    Auto-retries once on stale/dropped connections (InterfaceError, OperationalError).
     """
-    for attempt in range(2):
-        pool, conn = _fresh_conn()
+    pool, conn = _fresh_conn()
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
         try:
-            yield conn
-            conn.commit()
-            return
-        except _STALE_ERRORS:
-            # Server dropped the connection — reset pool and retry once.
-            try:
-                pool.putconn(conn)
-            except Exception:
-                pass
-            close_pool()
-            if attempt == 1:
-                raise
+            conn.rollback()
         except Exception:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-            try:
-                pool.putconn(conn)
-            except Exception:
-                pass
-            raise
+            pass
+        raise
+    finally:
+        try:
+            pool.putconn(conn)
+        except Exception:
+            pass
 
 
 @contextmanager
