@@ -80,21 +80,24 @@ try:
                 int(x) for x in _p["applied"].split(",") if x.strip()
             }
 
-    # Navigation params — always applied (enables company links, shareable URLs)
+    # Navigation params — page is always applied (enables company links, shareable URLs)
+    # role/q/days are only applied once on first load to avoid overriding in-session widget state
     _VALID_PAGES = ("Analytics", "New Leads", "New This Week", "Saved", "Fetch New Jobs")
     if "page" in _p and _p["page"] in _VALID_PAGES:
         st.session_state.page = _p["page"]
-    if "role" in _p:
-        st.session_state["role_90"] = _p["role"]
-        st.session_state["role_7"]  = _p["role"]
-    if "q" in _p:
-        st.session_state["search_90"] = _p["q"]
-        st.session_state["search_7"]  = _p["q"]
-    if "days" in _p:
-        try:
-            st.session_state["lb_90"] = int(_p["days"])
-        except Exception:
-            pass
+    if not st.session_state.get("_url_params_loaded"):
+        st.session_state["_url_params_loaded"] = True
+        if "role" in _p:
+            st.session_state["role_90"] = _p["role"]
+            st.session_state["role_7"]  = _p["role"]
+        if "q" in _p:
+            st.session_state["search_90"] = _p["q"]
+            st.session_state["search_7"]  = _p["q"]
+        if "days" in _p:
+            try:
+                st.session_state["lb_90"] = int(_p["days"])
+            except Exception:
+                pass
 except Exception:
     pass
 
@@ -781,34 +784,157 @@ div[data-testid="stExpander"] > details > summary:hover > span {
 
 /* ── Mobile responsive ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
+    /* Container — prevent horizontal scroll, comfortable padding */
+    .main .block-container, .block-container {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        max-width: 100% !important;
+    }
+
     /* Stack all horizontal blocks vertically */
     [data-testid="stHorizontalBlock"] {
         flex-wrap: wrap !important;
     }
+
     /* All columns go full-width */
-    [data-testid="column"] {
+    [data-testid="stHorizontalBlock"] > [data-testid="stVerticalBlock"],
+    [data-testid="stHorizontalBlock"] > div[data-testid="column"],
+    [data-testid="column"],
+    section[data-testid="column"] {
+        flex: 0 0 100% !important;
         min-width: 100% !important;
-        flex: 1 1 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
-    /* Reduce header title size */
-    #bccc-header > div > div:first-child div {
-        font-size: 1.05rem !important;
-        letter-spacing: 0.1em !important;
+
+    /* Header — collapse to single centered column, fix negative margins, hide face images */
+    #bccc-header, .bccc-header {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        grid-template-columns: 1fr !important;
+        justify-items: center;
+        gap: 4px;
+        padding: 6px;
     }
-    /* Hide face images on small screens */
+    .bccc-face-left,
+    .bccc-face-right,
     #bccc-header img { display: none !important; }
-    /* Reduce outer padding */
-    .block-container {
-        padding-left: 0.4rem !important;
-        padding-right: 0.4rem !important;
+    .bccc-title {
+        font-size: 1rem !important;
+        letter-spacing: 0.1em !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
     }
-    /* Stat numbers smaller */
-    .stat-num { font-size: 1.8rem !important; }
-    /* Filter chips wrap */
+    .bccc-subtitle { font-size: 0.75rem !important; }
+
+    /* Typography scale */
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.2rem !important; }
+    h3 { font-size: 1.1rem !important; }
+
+    /* Tighten element spacing */
+    .element-container { margin-bottom: 0.5rem !important; }
+
+    /* Buttons — minimum 44px tap target */
+    .stButton > button {
+        min-height: 44px !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Apply link — minimum 44px tap target */
+    .apply-link {
+        display: inline-flex !important;
+        align-items: center !important;
+        min-height: 44px !important;
+        padding: 0 !important;
+    }
+
+    /* Stat cards — tighter padding, smaller numbers */
+    .stat-card   { padding: 14px 16px !important; }
+    .stat-num    { font-size: 1.8rem !important; }
+    .stat-label  { font-size: 0.65rem !important; }
+
+    /* Activity cards */
+    .activity-card { padding: 10px 14px !important; }
+    .activity-num  { font-size: 1.5rem !important; }
+
+    /* Job cards — tighter internal padding */
+    .job-card { padding: 12px 12px 10px !important; }
+
+    /* Filter chips — tighter but still tappable */
     div[data-testid="stRadio"] > div:last-child {
         flex-wrap: wrap !important;
         gap: 4px !important;
     }
+    div[data-testid="stRadio"] > div:last-child > label {
+        padding: 2px 10px !important;
+        min-height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    div[data-testid="stRadio"] > div:last-child > label > div:last-child p {
+        font-size: 0.7rem !important;
+    }
+
+    /* Stats banner — smaller text, allow wrap */
+    .stats-banner {
+        font-size: 0.7rem !important;
+        white-space: normal !important;
+        line-height: 1.6 !important;
+    }
+
+    /* Email section — tighter padding */
+    .email-section { padding: 16px !important; }
+}
+
+/* ── Header — class-based layout ────────────────────────────────────── */
+.bccc-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    text-align: center;
+    border-top: 2px solid #7C3AED;
+    border-bottom: 2px solid #7C3AED;
+    padding: 0;
+    margin: 0 -1rem 14px -1rem;
+    gap: 5px;
+}
+.bccc-center {
+    min-width: 0;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 0;
+    line-height: normal;
+}
+.bccc-title {
+    letter-spacing: 0.22em;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #F1F5F9;
+    font-family: 'Inter', system-ui, sans-serif;
+    text-shadow: 0 0 24px rgba(124,58,237,0.8), 0 0 60px rgba(59,130,246,0.35);
+    white-space: nowrap;
+    width: 100%;
+}
+.bccc-subtitle {
+    font-size: 1.03rem;
+    font-style: italic;
+    font-weight: 400;
+    color: #6B7280;
+    letter-spacing: 0.05em;
+}
+.bccc-face {
+    height: 96px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    opacity: 0.95;
 }
 
 /* ── Your Activity cards ─────────────────────────────────────────────── */
@@ -835,10 +961,8 @@ _face_b64  = ""
 if os.path.exists(_face_path):
     with open(_face_path, "rb") as _f:
         _face_b64 = _b64.b64encode(_f.read()).decode()
-_img = (
-    f'<img src="data:image/png;base64,{_face_b64}" '
-    f'style="height:96px;width:auto;object-fit:contain;display:block;opacity:0.95;">'
-) if _face_b64 else ""
+_img_left  = f'<img src="data:image/png;base64,{_face_b64}" class="bccc-face bccc-face-left" alt="">'  if _face_b64 else ""
+_img_right = f'<img src="data:image/png;base64,{_face_b64}" class="bccc-face bccc-face-right" alt="">' if _face_b64 else ""
 
 st.markdown(f"""
 <style>
@@ -851,38 +975,13 @@ st.markdown(f"""
       animation: gradientShift 10s ease infinite;
   }}
 </style>
-<div id="bccc-header" style="
-    border-top: 2px solid #7C3AED;
-    border-bottom: 2px solid #7C3AED;
-    padding: 0;
-    margin: 0 -1rem 14px -1rem;
-    display: flex;
-    align-items: stretch;
-    justify-content: space-between;
-    overflow: hidden;
-    line-height: 0;
-">
-    {_img}
-    <a href="/" target="_self" style="flex:1;display:flex;flex-direction:column;align-items:center;
-                justify-content:center;line-height:normal;gap:5px;padding:8px 0;
-                text-decoration:none;cursor:pointer;">
-        <div style="
-            letter-spacing: 0.22em;
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #F1F5F9;
-            font-family: 'Inter', system-ui, sans-serif;
-            text-shadow: 0 0 24px rgba(124,58,237,0.8), 0 0 60px rgba(59,130,246,0.35);
-        ">BIG CASH COMMAND CENTER</div>
-        <div style="
-            font-size: 1.03rem;
-            font-style: italic;
-            font-weight: 400;
-            color: #6B7280;
-            letter-spacing: 0.05em;
-        ">you want jobs? shit, we got jobs</div>
+<div id="bccc-header" class="bccc-header">
+    {_img_left}
+    <a href="/" target="_self" class="bccc-center" style="text-decoration:none;cursor:pointer;min-width:0;width:100%;text-align:center;">
+        <div class="bccc-title">BIG CASH COMMAND CENTER</div>
+        <div class="bccc-subtitle">you want jobs? shit, we got jobs</div>
     </a>
-    {_img}
+    {_img_right}
 </div>
 """, unsafe_allow_html=True)
 
@@ -954,6 +1053,10 @@ if _toast_msg:
                 border-radius:10px;padding:10px 16px;color:#E2E8F0;font-size:0.78rem;font-weight:600;
                 font-family:Inter,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,0.4);
                 animation:toastIn 0.2s ease forwards;pointer-events:auto;cursor:pointer;}}
+        @media (max-width:768px) {{
+            .toast-container{{bottom:auto;top:16px;left:16px;right:16px;width:auto;}}
+            .toast{{max-width:100%;white-space:normal;}}
+        }}
     </style>
     """, height=0)
 
