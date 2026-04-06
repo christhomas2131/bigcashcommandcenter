@@ -82,7 +82,7 @@ try:
 
     # Navigation params — page is always applied (enables company links, shareable URLs)
     # role/q/days are only applied once on first load to avoid overriding in-session widget state
-    _VALID_PAGES = ("Analytics", "New Leads", "New This Week", "Saved", "Fetch New Jobs")
+    _VALID_PAGES = ("Analytics", "All Jobs", "New This Week", "Saved", "Fetch New Jobs")
     if "page" in _p and _p["page"] in _VALID_PAGES:
         st.session_state.page = _p["page"]
     if not st.session_state.get("_url_params_loaded"):
@@ -387,7 +387,7 @@ def show_job_modal(job: dict):
             st.link_button("Apply →", job_url, use_container_width=True, type="primary")
 
 
-def _sync_filters(role: str, q: str, days: int, page_key: str = "New Leads"):
+def _sync_filters(role: str, q: str, days: int, page_key: str = "All Jobs"):
     """Keep filter state in the URL so views are shareable."""
     st.query_params["page"] = page_key
     if role != "All":
@@ -1005,7 +1005,7 @@ def render_nav(col):
         n_saved = len(st.session_state.saved_jobs)
         pages = [
             ("Analytics",                          "📊"),
-            (f"New Leads ({len(all_jobs)})",        "💼"),
+            (f"All Jobs ({len(all_jobs)})",        "💼"),
             (f"New This Week ({len(leads_7d)})",    "✨"),
             (f"Saved ({n_saved})",                  "🔖"),
             ("Fetch New Jobs",                       "⚙️"),
@@ -1242,7 +1242,7 @@ def page_analytics():
                 unsafe_allow_html=True,
             )
     if not n_sv and not n_ap:
-        st.caption("Save or apply to jobs on the New Leads page to track your activity here.")
+        st.caption("Save or apply to jobs on the All Jobs page to track your activity here.")
     st.markdown('<hr style="border:none;border-top:1px solid rgba(124,58,237,0.12);margin:16px 0;">', unsafe_allow_html=True)
 
     this_week, last_week = week_counts(jobs)
@@ -1501,11 +1501,11 @@ def page_analytics():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Page: Leads (shared by New Leads + New This Week)
+# Page: Leads (shared by All Jobs + New This Week)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def page_leads(days: int):
-    heading = "New This Week" if days == 7 else "New Leads"
+    heading = "New This Week" if days == 7 else "All Jobs"
     st.markdown(f"### {heading}")
 
     # ── Row 1: search + lookback + refresh ────────────────────────────────
@@ -1636,7 +1636,7 @@ def page_leads(days: int):
 
     # Sync active filters into URL for shareability + refresh persistence
     _sync_filters(role_opt, search, days_opt,
-                  page_key="New This Week" if days == 7 else "New Leads")
+                  page_key="New This Week" if days == 7 else "All Jobs")
 
     b1, b2 = st.columns([5, 1])
     with b1:
@@ -1796,7 +1796,7 @@ def page_ingestion():
 with content_col:
     if page == "Analytics":
         page_analytics()
-    elif page.startswith("New Leads"):
+    elif page.startswith("All Jobs"):
         page_leads(days=90)
     elif page.startswith("New This Week"):
         page_leads(days=7)
