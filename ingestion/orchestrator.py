@@ -16,10 +16,12 @@ from pathlib import Path
 
 import config
 from db import repository as repo
+from ingestion.enrichment import enrich_jobs_with_claude
 from ingestion.dedup import deduplicate
 from ingestion.sources.company_watcher import run_company_watcher
 from ingestion.sources.iaem import scrape_iaem
 from ingestion.sources.asfpm import scrape_asfpm
+from ingestion.sources.firecrawl import run_firecrawl_pages
 from ingestion.sources.jsearch import JSearchClient
 from ingestion.sources.adzuna import AdzunaClient
 from ingestion.sources.usajobs import USAJobsClient
@@ -143,6 +145,9 @@ def run(
         "error_count":      0,
         "flagged":          0,
         "flagged_jobs":     [],
+        "firecrawl_found":  0,
+        "claude_reviewed":  0,
+        "claude_dropped":   0,
     }
 
     try:
@@ -241,15 +246,39 @@ def run(
                 log.error(f"ASFPM scraper failed: {exc}")
                 report["error_count"] += 1
 
+        # ── Firecrawl fallback pages ───────────────────────────────────────
+        firecrawl_jobs: list[dict] = []
+        firecrawl_cfg = api_config.get("firecrawl", {})
+        if firecrawl_cfg.get("enabled", False):
+            log.info("\n── Firecrawl fallback pages ──")
+            try:
+                firecrawl_jobs = run_firecrawl_pages(firecrawl_cfg)
+                report["firecrawl_found"] = len(firecrawl_jobs)
+                log.info(f"Firecrawl total: {len(firecrawl_jobs)} jobs")
+            except Exception as exc:
+                log.error(f"Firecrawl failed: {exc}")
+                report["error_count"] += 1
+
         # ── Filtering ─────────────────────────────────────────────────────
         api_filtered   = _apply_api_filters(all_normalised, filters)
         co_filtered    = _apply_title_filter(company_jobs, filters)
         iaem_filtered  = _apply_title_filter(iaem_jobs, filters)
         asfpm_filtered = _apply_title_filter(asfpm_jobs, filters)
-        combined       = api_filtered + co_filtered + iaem_filtered + asfpm_filtered
+        fire_filtered  = _apply_title_filter(firecrawl_jobs, filters)
+        combined       = api_filtered + co_filtered + iaem_filtered + asfpm_filtered + fire_filtered
+
+        claude_cfg = search_cfg.get("claude", {})
+        combined, claude_stats = enrich_jobs_with_claude(combined, claude_cfg)
+        report["claude_reviewed"] = claude_stats.get("reviewed", 0)
+        report["claude_dropped"] = claude_stats.get("dropped", 0)
+        report["error_count"] += claude_stats.get("errors", 0)
 
         report["jobs_found"] = len(combined)
-        log.info(f"\nFiltering: {len(all_normalised) + len(company_jobs)} → {len(combined)}")
+        log.info(
+            "\nFiltering: "
+            f"{len(all_normalised) + len(company_jobs) + len(iaem_jobs) + len(asfpm_jobs) + len(firecrawl_jobs)} "
+            f"→ {len(combined)}"
+        )
 
         # ── Deduplication ─────────────────────────────────────────────────
         new_jobs, duplicates, flagged = deduplicate(combined, existing)
@@ -293,7 +322,12 @@ def run(
             "jobs_updated":  report["jobs_updated"],
             "jobs_skipped":  report["jobs_skipped"],
             "error_count":   report["error_count"],
-            "run_notes":     f"flagged={report['flagged']}",
+            "run_notes":     (
+                f"flagged={report['flagged']}; "
+                f"firecrawl={report['firecrawl_found']}; "
+                f"claude_reviewed={report['claude_reviewed']}; "
+                f"claude_dropped={report['claude_dropped']}"
+            ),
         })
 
     _print_summary(report)
@@ -317,6 +351,9 @@ def _print_summary(report: dict) -> None:
     print(f"  Jobs updated:       {report.get('jobs_updated', 0)}")
     print(f"  Duplicates skipped: {report.get('jobs_skipped', 0)}")
     print(f"  Flagged for review: {report.get('flagged', 0)}")
+    print(f"  Firecrawl found:    {report.get('firecrawl_found', 0)}")
+    print(f"  Claude reviewed:    {report.get('claude_reviewed', 0)}")
+    print(f"  Claude dropped:     {report.get('claude_dropped', 0)}")
     print(f"  Errors:             {report.get('error_count', 0)}")
 
     flagged_jobs = report.get("flagged_jobs", [])

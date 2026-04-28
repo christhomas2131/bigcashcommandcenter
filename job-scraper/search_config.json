@@ -5,24 +5,24 @@
       "max_pages": 6
     },
     "asfpm": {
-      "enabled": false,
+      "enabled": true,
       "max_pages": 4
     },
     "jsearch": {
-      "enabled": false,
-      "api_key": "12dfe912cdmsh0318cb30fddba42p1311b7jsn8f0271c2a9bd",
+      "enabled": true,
+      "api_key": "",
       "base_url": "https://jsearch.p.rapidapi.com"
     },
     "adzuna": {
       "enabled": true,
-      "app_id": "d1787b78",
-      "app_key": "ec1c535043c22def6364dbe1e3a845c0",
+      "app_id": "",
+      "app_key": "",
       "country": "us"
     },
     "usajobs": {
       "enabled": true,
-      "email": "chrisball2141@gmail.com",
-      "api_key": "+fbRHVR6E5us3+8DTxyUTl/Nv+xoEmnnVsp+WF9dehU=",
+      "email": "",
+      "api_key": "",
       "location": "California",
       "extra_queries": [
         {"keyword": "FEMA disaster recovery"},
@@ -36,6 +36,38 @@
         {"keyword": "disaster recovery program analyst"},
         {"keyword": "resilience planning coordinator"}
       ]
+    },
+    "firecrawl": {
+      "enabled": true,
+      "max_jobs_per_page": 25,
+      "timeout_ms": 30000,
+      "pages": [
+        {
+          "name": "Hagerty Consulting",
+          "url": "https://hagertyconsulting.com/careers/",
+          "search_terms": ["disaster recovery", "emergency management", "fema", "public assistance", "hazard mitigation", "grants management"]
+        },
+        {
+          "name": "Tidal Basin",
+          "url": "https://www.tidalbasingroup.com/careers/",
+          "search_terms": ["disaster recovery", "emergency management", "public assistance", "hazard mitigation", "cdbg", "grants management"]
+        },
+        {
+          "name": "AC Disaster Consulting",
+          "url": "https://acdisaster.com/careers/",
+          "search_terms": ["disaster recovery", "emergency management", "public assistance", "hazard mitigation", "project manager"]
+        },
+        {
+          "name": "Guidehouse",
+          "url": "https://guidehouse.com/careers",
+          "search_terms": ["disaster recovery", "emergency management", "grants management", "public sector", "government"]
+        },
+        {
+          "name": "Tetra Tech",
+          "url": "https://www.tetratech.com/en/careers",
+          "search_terms": ["disaster recovery", "emergency management", "floodplain", "hazard mitigation", "public assistance"]
+        }
+      ]
     }
   },
   "search_profiles": [
@@ -43,11 +75,16 @@
       "name": "Disaster Recovery / Emergency Management",
       "queries": [
         "disaster recovery consultant remote",
+        "disaster recovery consultant",
         "FEMA public assistance specialist",
+        "FEMA public assistance consultant",
         "emergency management consultant remote",
+        "emergency management specialist",
         "disaster recovery project manager",
         "grant management specialist FEMA",
-        "hazard mitigation project manager"
+        "hazard mitigation project manager",
+        "CDBG-DR program manager",
+        "resilience program manager"
       ],
       "target_companies": [
         "Hagerty Consulting",
@@ -68,8 +105,12 @@
       "queries": [
         "implementation consultant remote",
         "implementation specialist remote",
+        "public sector implementation consultant",
+        "govtech implementation consultant",
         "onboarding consultant remote",
-        "solutions consultant remote"
+        "solutions consultant remote",
+        "customer success manager government software",
+        "technical account manager public sector"
       ],
       "target_companies": [
         "Salesforce",
@@ -169,7 +210,11 @@
         "grants management software sales remote",
         "government SaaS account executive remote",
         "government SaaS account executive San Francisco",
-        "government SaaS solutions engineer remote"
+        "government SaaS solutions engineer remote",
+        "public sector customer success manager",
+        "public sector implementation consultant",
+        "government grants management software",
+        "emergency management SaaS implementation"
       ],
       "target_companies": [
         "Tyler Technologies",
@@ -260,6 +305,14 @@
       "default_priority": "High"
     }
   ],
+  "claude": {
+    "enabled": true,
+    "model": "",
+    "max_jobs_per_run": 75,
+    "batch_size": 10,
+    "min_score": 45,
+    "high_priority_score": 85
+  },
   "target_companies": [
     {
       "name": "Fors Marsh Group",
@@ -316,7 +369,7 @@
     }
   ],
   "filters": {
-    "work_types": ["Remote", "Hybrid"],
+    "work_types": ["Remote", "Hybrid", "On-site"],
     "exclude_keywords": [
       "senior director", "VP", "vice president", "CTO", "intern", "internship"
     ],

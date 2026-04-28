@@ -14,6 +14,7 @@ import argparse
 import csv
 import json
 import logging
+import os
 import sqlite3
 import time
 from datetime import date, datetime
@@ -21,6 +22,7 @@ from pathlib import Path
 from typing import Optional
 
 import requests
+from dotenv import load_dotenv
 from rapidfuzz import fuzz, process
 
 from company_watcher import run_company_watcher
@@ -33,6 +35,8 @@ SCRIPT_DIR   = Path(__file__).parent
 DEFAULT_DB   = SCRIPT_DIR.parent / "jobs.db"
 CONFIG_FILE  = SCRIPT_DIR / "search_config.json"
 LOGS_DIR     = SCRIPT_DIR / "scraper_logs"
+
+load_dotenv(SCRIPT_DIR.parent / ".env")
 
 DEDUP_THRESHOLD  = 85   # score >= this → duplicate
 REVIEW_THRESHOLD = 70   # score >= this → flag for review
@@ -482,16 +486,17 @@ class Scraper:
             if not cfg.get("enabled"):
                 continue
             if name == "jsearch":
-                key = cfg.get("api_key", "")
+                key = cfg.get("api_key", "") or os.environ.get("JSEARCH_API_KEY", "")
                 if key and key != "YOUR_RAPIDAPI_KEY_HERE":
-                    clients["jsearch"] = JSearchClient(cfg)
+                    clients["jsearch"] = JSearchClient({**cfg, "api_key": key})
                     log.info("API enabled: JSearch (RapidAPI)")
                 else:
                     log.warning("JSearch enabled but api_key not set — skipping.")
             elif name == "adzuna":
-                app_id = cfg.get("app_id", "")
-                if app_id and app_id != "YOUR_ADZUNA_APP_ID":
-                    clients["adzuna"] = AdzunaClient(cfg)
+                app_id = cfg.get("app_id", "") or os.environ.get("ADZUNA_APP_ID", "")
+                app_key = cfg.get("app_key", "") or os.environ.get("ADZUNA_APP_KEY", "")
+                if app_id and app_key and app_id != "YOUR_ADZUNA_APP_ID":
+                    clients["adzuna"] = AdzunaClient({**cfg, "app_id": app_id, "app_key": app_key})
                     log.info("API enabled: Adzuna")
                 else:
                     log.warning("Adzuna enabled but credentials not set — skipping.")

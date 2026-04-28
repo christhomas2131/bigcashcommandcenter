@@ -1731,6 +1731,17 @@ def page_saved():
 def page_ingestion():
     st.markdown("### ⚙️ Fetch New Jobs")
 
+    def _parse_run_notes(notes: str | None) -> dict:
+        parsed = {}
+        if not notes:
+            return parsed
+        for part in str(notes).split(";"):
+            if "=" not in part:
+                continue
+            key, val = part.split("=", 1)
+            parsed[key.strip()] = val.strip()
+        return parsed
+
     c1, c2 = st.columns([3, 1])
     with c1:
         st.info("Trigger a manual run to pull fresh listings from Adzuna and USAJobs.")
@@ -1746,6 +1757,11 @@ def page_ingestion():
                     f"Done — {report['jobs_created']} new · "
                     f"{report['jobs_updated']} updated · "
                     f"{report['jobs_skipped']} dupes skipped"
+                )
+                st.caption(
+                    f"Firecrawl: {report.get('firecrawl_found', 0)} found · "
+                    f"Claude: {report.get('claude_reviewed', 0)} reviewed, "
+                    f"{report.get('claude_dropped', 0)} dropped"
                 )
                 st.cache_data.clear()
             except Exception as e:
@@ -1768,6 +1784,10 @@ def page_ingestion():
             finished = r.get("completed_at")
             status   = r.get("status") or "unknown"
             sc       = _status_color.get(status, "#6B7280")
+            notes    = _parse_run_notes(r.get("run_notes"))
+            firecrawl_count = notes.get("firecrawl", "0")
+            claude_reviewed = notes.get("claude_reviewed", "0")
+            claude_dropped  = notes.get("claude_dropped", "0")
             dur      = ""
             if started and finished:
                 secs = int((finished - started).total_seconds())
@@ -1783,6 +1803,8 @@ def page_ingestion():
                 f'  <span style="color:#F1F5F9;font-weight:600;">+{r.get("jobs_created",0)} new</span>'
                 f'  <span style="color:#6B7280;">{r.get("jobs_updated",0)} updated</span>'
                 f'  <span style="color:#6B7280;">{r.get("jobs_skipped",0)} dupes</span>'
+                f'  <span style="color:#7DD3FC;">Firecrawl {firecrawl_count}</span>'
+                f'  <span style="color:#A7F3D0;">Claude {claude_reviewed}/{claude_dropped}</span>'
                 f'  <span style="color:#374151;margin-left:auto;">{dur}</span>'
                 f'</div>',
                 unsafe_allow_html=True,

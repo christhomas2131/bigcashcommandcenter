@@ -55,6 +55,10 @@ ADZUNA_APP_ID: str = os.environ.get("ADZUNA_APP_ID", "")
 ADZUNA_APP_KEY: str = os.environ.get("ADZUNA_APP_KEY", "")
 USAJOBS_EMAIL: str = os.environ.get("USAJOBS_EMAIL", "")
 USAJOBS_API_KEY: str = os.environ.get("USAJOBS_API_KEY", "")
+FIRECRAWL_API_KEY: str = os.environ.get("FIRECRAWL_API_KEY", "")
+FIRECRAWL_BASE_URL: str = os.environ.get("FIRECRAWL_BASE_URL", "https://api.firecrawl.dev")
+ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY", "")
+ANTHROPIC_MODEL: str = os.environ.get("ANTHROPIC_MODEL", "claude-3-5-haiku-latest")
 
 # Path to the search_config.json that controls queries, companies, and filters
 INGESTION_SEARCH_CONFIG: str = os.environ.get(

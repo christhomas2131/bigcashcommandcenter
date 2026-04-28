@@ -2,7 +2,8 @@
 ingestion/sources/company_watcher.py — Scrape current openings from target company career pages.
 
 Ported from job-scraper/company_watcher.py into the ingestion package.
-Supported ATS: Breezy HR, Lever, Workday, iCIMS, KPMG, Deloitte.
+Supported ATS: Breezy HR, Lever, Workday, iCIMS, Greenhouse, Ashby,
+SmartRecruiters, KPMG, Deloitte.
 """
 
 from __future__ import annotations
@@ -165,6 +166,91 @@ def scrape_lever(company_name: str, slug: str) -> list[dict]:
         jobs.append(_job(company_name, title, job_url, loc))
 
     log.info(f"  Lever ({company_name}): {len(jobs)} matching")
+    return jobs
+
+
+# ---------------------------------------------------------------------------
+# Greenhouse
+# ---------------------------------------------------------------------------
+
+def scrape_greenhouse(company_name: str, board_token: str) -> list[dict]:
+    url = f"https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs?content=true"
+    try:
+        resp = requests.get(url, headers=_HEADERS, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        log.error(f"  Greenhouse ({company_name}): {e}")
+        return []
+
+    jobs = []
+    for item in data.get("jobs", []):
+        title = item.get("title", "").strip()
+        content = item.get("content") or ""
+        if not _matches(title, content):
+            continue
+        offices = item.get("offices") or []
+        location = ", ".join(o.get("name", "") for o in offices if o.get("name"))
+        job_url = item.get("absolute_url") or ""
+        jobs.append(_job(company_name, title, job_url, location))
+
+    log.info(f"  Greenhouse ({company_name}): {len(jobs)} matching")
+    return jobs
+
+
+# ---------------------------------------------------------------------------
+# Ashby
+# ---------------------------------------------------------------------------
+
+def scrape_ashby(company_name: str, slug: str) -> list[dict]:
+    url = f"https://api.ashbyhq.com/posting-api/job-board/{slug}"
+    try:
+        resp = requests.get(url, headers=_HEADERS, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        log.error(f"  Ashby ({company_name}): {e}")
+        return []
+
+    jobs = []
+    for item in data.get("jobs", []):
+        title = item.get("title", "").strip()
+        desc = item.get("descriptionPlain") or item.get("descriptionHtml") or ""
+        if not _matches(title, desc):
+            continue
+        location = item.get("location") or ""
+        job_url = item.get("jobUrl") or item.get("applyUrl") or ""
+        jobs.append(_job(company_name, title, job_url, location))
+
+    log.info(f"  Ashby ({company_name}): {len(jobs)} matching")
+    return jobs
+
+
+# ---------------------------------------------------------------------------
+# SmartRecruiters
+# ---------------------------------------------------------------------------
+
+def scrape_smartrecruiters(company_name: str, company_identifier: str) -> list[dict]:
+    url = f"https://api.smartrecruiters.com/v1/companies/{company_identifier}/postings"
+    try:
+        resp = requests.get(url, headers=_HEADERS, params={"limit": 100}, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        log.error(f"  SmartRecruiters ({company_name}): {e}")
+        return []
+
+    jobs = []
+    for item in data.get("content", []):
+        title = item.get("name", "").strip()
+        if not _matches(title):
+            continue
+        loc_obj = item.get("location") or {}
+        location = loc_obj.get("city") or loc_obj.get("region") or loc_obj.get("country") or ""
+        job_url = item.get("ref") or item.get("postingUrl") or ""
+        jobs.append(_job(company_name, title, job_url, location))
+
+    log.info(f"  SmartRecruiters ({company_name}): {len(jobs)} matching")
     return jobs
 
 
@@ -451,6 +537,12 @@ def run_company_watcher(companies: list[dict]) -> list[dict]:
                 batch = scrape_breezy(name, co["slug"])
             elif ats == "lever":
                 batch = scrape_lever(name, co["slug"])
+            elif ats == "greenhouse":
+                batch = scrape_greenhouse(name, co["board_token"])
+            elif ats == "ashby":
+                batch = scrape_ashby(name, co["slug"])
+            elif ats == "smartrecruiters":
+                batch = scrape_smartrecruiters(name, co["company_identifier"])
             elif ats == "workday":
                 batch = scrape_workday(name, co["tenant"], int(co["wd_num"]), co["site"])
             elif ats == "icims":
