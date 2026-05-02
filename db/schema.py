@@ -177,6 +177,7 @@ _SAFE_MIGRATIONS = [
     "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS description_raw      TEXT",
     "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS created_at           TIMESTAMPTZ DEFAULT NOW()",
     "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS updated_at           TIMESTAMPTZ DEFAULT NOW()",
+    "ALTER TABLE jobs ADD COLUMN IF NOT EXISTS conference_source    VARCHAR(100)",
 ]
 
 

@@ -602,18 +602,28 @@ def upsert_ingested_job(data: dict) -> tuple[int, str]:
                 existing_id = row["id"]
 
         if existing_id is not None:
-            # Only update mutable fields; don't overwrite user edits to status/priority
+            # Only update mutable fields; don't overwrite user edits to status/priority.
+            # conference_source is merged: if the same job was found at a second conference,
+            # append it so both attributions are preserved.
+            new_conf = data.get("conference_source")
             cur.execute("""
                 UPDATE jobs SET
-                    job_url           = COALESCE(%s, job_url),
-                    description_raw   = COALESCE(%s, description_raw),
+                    job_url            = COALESCE(%s, job_url),
+                    description_raw    = COALESCE(%s, description_raw),
                     dedupe_fingerprint = COALESCE(%s, dedupe_fingerprint),
-                    updated_at        = NOW()
+                    conference_source  = CASE
+                        WHEN conference_source IS NULL THEN %s
+                        WHEN %s IS NULL THEN conference_source
+                        WHEN conference_source LIKE '%%' || %s || '%%' THEN conference_source
+                        ELSE conference_source || ', ' || %s
+                    END,
+                    updated_at         = NOW()
                 WHERE id = %s
             """, (
                 data.get("job_url"),
                 data.get("description_raw"),
                 fingerprint,
+                new_conf, new_conf, new_conf, new_conf,
                 existing_id,
             ))
             return existing_id, "updated"
@@ -624,12 +634,14 @@ def upsert_ingested_job(data: dict) -> tuple[int, str]:
                 company_name, role_title, status, date_added, date_applied,
                 salary_min, salary_max, location, work_type, source,
                 job_url, notes, priority,
-                dedupe_fingerprint, external_job_id, description_raw
+                dedupe_fingerprint, external_job_id, description_raw,
+                conference_source
             ) VALUES (
                 %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s,
                 %s, %s, %s,
-                %s, %s, %s
+                %s, %s, %s,
+                %s
             )
             RETURNING id
         """, (
@@ -649,6 +661,7 @@ def upsert_ingested_job(data: dict) -> tuple[int, str]:
             fingerprint,
             data.get("external_job_id"),
             data.get("description_raw"),
+            data.get("conference_source"),
         ))
         new_id = cur.fetchone()["id"]
         return new_id, "created"

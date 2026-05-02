@@ -22,6 +22,10 @@ from ingestion.sources.company_watcher import run_company_watcher
 from ingestion.sources.iaem import scrape_iaem
 from ingestion.sources.asfpm import scrape_asfpm
 from ingestion.sources.firecrawl import run_firecrawl_pages
+from ingestion.sources.firecrawl_companies import scrape_firecrawl_companies
+from ingestion.sources.water_districts import scrape_water_districts
+from ingestion.sources.tavily_discovery import scrape_tavily
+from ingestion.sources.conference_exhibitors import scrape_conference_exhibitors
 from ingestion.sources.jsearch import JSearchClient
 from ingestion.sources.adzuna import AdzunaClient
 from ingestion.sources.usajobs import USAJobsClient
@@ -145,7 +149,11 @@ def run(
         "error_count":      0,
         "flagged":          0,
         "flagged_jobs":     [],
-        "firecrawl_found":  0,
+        "firecrawl_found":           0,
+        "firecrawl_companies_found": 0,
+        "water_districts_found":     0,
+        "tavily_found":              0,
+        "conference_exhibitors_found": 0,
         "claude_reviewed":  0,
         "claude_dropped":   0,
     }
@@ -259,13 +267,77 @@ def run(
                 log.error(f"Firecrawl failed: {exc}")
                 report["error_count"] += 1
 
+        # ── Firecrawl company career pages ────────────────────────────────
+        fc_companies_jobs: list[dict] = []
+        fc_co_cfg = api_config.get("firecrawl_companies", {})
+        if fc_co_cfg.get("enabled", True):
+            log.info("\n── Firecrawl Company Career Pages ──")
+            try:
+                fc_companies_jobs = scrape_firecrawl_companies(
+                    max_jobs_per_page=int(fc_co_cfg.get("max_jobs_per_page", 25))
+                )
+                report["firecrawl_companies_found"] = len(fc_companies_jobs)
+                log.info(f"Firecrawl companies total: {len(fc_companies_jobs)} jobs")
+            except Exception as exc:
+                log.error(f"Firecrawl companies failed: {exc}")
+                report["error_count"] += 1
+
+        # ── Water district career pages ───────────────────────────────────
+        water_district_jobs: list[dict] = []
+        wd_cfg = api_config.get("water_districts", {})
+        if wd_cfg.get("enabled", True):
+            log.info("\n── Water District Career Pages ──")
+            try:
+                water_district_jobs = scrape_water_districts()
+                report["water_districts_found"] = len(water_district_jobs)
+                log.info(f"Water districts total: {len(water_district_jobs)} jobs")
+            except Exception as exc:
+                log.error(f"Water districts scraper failed: {exc}")
+                report["error_count"] += 1
+
+        # ── Tavily AI discovery ────────────────────────────────────────────
+        tavily_jobs: list[dict] = []
+        tavily_cfg = api_config.get("tavily", {})
+        if tavily_cfg.get("enabled", True):
+            log.info("\n── Tavily AI Discovery ──")
+            try:
+                tavily_jobs = scrape_tavily(
+                    max_results_per_query=int(tavily_cfg.get("max_results_per_query", 10))
+                )
+                report["tavily_found"] = len(tavily_jobs)
+                log.info(f"Tavily total: {len(tavily_jobs)} jobs")
+            except Exception as exc:
+                log.error(f"Tavily discovery failed: {exc}")
+                report["error_count"] += 1
+
+        # ── Conference exhibitor career pages ─────────────────────────────
+        # Off by default — 125 Firecrawl calls = ~25 min. Enable in search_config.json
+        # under "conference_exhibitors": {"enabled": true} for a dedicated run.
+        conf_exhibitor_jobs: list[dict] = []
+        conf_cfg = api_config.get("conference_exhibitors", {})
+        if conf_cfg.get("enabled", False):
+            log.info("\n── Conference Exhibitors (DeepLearning.AI + HumanX) ──")
+            try:
+                conf_exhibitor_jobs = scrape_conference_exhibitors(
+                    max_jobs_per_page=int(conf_cfg.get("max_jobs_per_page", 25))
+                )
+                report["conference_exhibitors_found"] = len(conf_exhibitor_jobs)
+                log.info(f"Conference exhibitors total: {len(conf_exhibitor_jobs)} CX jobs")
+            except Exception as exc:
+                log.error(f"Conference exhibitors scrape failed: {exc}")
+                report["error_count"] += 1
+
         # ── Filtering ─────────────────────────────────────────────────────
         api_filtered   = _apply_api_filters(all_normalised, filters)
         co_filtered    = _apply_title_filter(company_jobs, filters)
         iaem_filtered  = _apply_title_filter(iaem_jobs, filters)
         asfpm_filtered = _apply_title_filter(asfpm_jobs, filters)
         fire_filtered  = _apply_title_filter(firecrawl_jobs, filters)
-        combined       = api_filtered + co_filtered + iaem_filtered + asfpm_filtered + fire_filtered
+        fc_co_filtered = _apply_title_filter(fc_companies_jobs, filters)
+        wd_filtered     = _apply_title_filter(water_district_jobs, filters)
+        tavily_filtered = _apply_title_filter(tavily_jobs, filters)
+        conf_filtered   = _apply_title_filter(conf_exhibitor_jobs, filters)
+        combined        = api_filtered + co_filtered + iaem_filtered + asfpm_filtered + fire_filtered + fc_co_filtered + wd_filtered + tavily_filtered + conf_filtered
 
         claude_cfg = search_cfg.get("claude", {})
         combined, claude_stats = enrich_jobs_with_claude(combined, claude_cfg)
@@ -276,7 +348,7 @@ def run(
         report["jobs_found"] = len(combined)
         log.info(
             "\nFiltering: "
-            f"{len(all_normalised) + len(company_jobs) + len(iaem_jobs) + len(asfpm_jobs) + len(firecrawl_jobs)} "
+            f"{len(all_normalised) + len(company_jobs) + len(iaem_jobs) + len(asfpm_jobs) + len(firecrawl_jobs) + len(fc_companies_jobs) + len(water_district_jobs) + len(tavily_jobs) + len(conf_exhibitor_jobs)} "
             f"→ {len(combined)}"
         )
 
@@ -325,6 +397,10 @@ def run(
             "run_notes":     (
                 f"flagged={report['flagged']}; "
                 f"firecrawl={report['firecrawl_found']}; "
+                f"firecrawl_companies={report['firecrawl_companies_found']}; "
+                f"water_districts={report['water_districts_found']}; "
+                f"tavily={report['tavily_found']}; "
+                f"conf_exhibitors={report['conference_exhibitors_found']}; "
                 f"claude_reviewed={report['claude_reviewed']}; "
                 f"claude_dropped={report['claude_dropped']}"
             ),
@@ -352,6 +428,10 @@ def _print_summary(report: dict) -> None:
     print(f"  Duplicates skipped: {report.get('jobs_skipped', 0)}")
     print(f"  Flagged for review: {report.get('flagged', 0)}")
     print(f"  Firecrawl found:    {report.get('firecrawl_found', 0)}")
+    print(f"  FC companies found: {report.get('firecrawl_companies_found', 0)}")
+    print(f"  Water districts:    {report.get('water_districts_found', 0)}")
+    print(f"  Tavily discovered:  {report.get('tavily_found', 0)}")
+    print(f"  Conf. exhibitors:   {report.get('conference_exhibitors_found', 0)}")
     print(f"  Claude reviewed:    {report.get('claude_reviewed', 0)}")
     print(f"  Claude dropped:     {report.get('claude_dropped', 0)}")
     print(f"  Errors:             {report.get('error_count', 0)}")

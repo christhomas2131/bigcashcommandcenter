@@ -51,7 +51,10 @@ def _score_batch(jobs: list[dict], settings: dict) -> dict[int, dict]:
     system_prompt = (
         "You score jobs for a public job board focused on Chris Ball's search: "
         "disaster recovery and emergency management, FEMA public assistance, "
-        "hazard mitigation, CDBG-DR, grants management, floodplain/NFIP/CFM, "
+        "hazard mitigation, CDBG-DR, grants management, "
+        "floodplain management/NFIP/CFM (Certified Floodplain Manager), "
+        "hydrology, hydraulic engineering, stormwater management, HEC-RAS, "
+        "flood risk analysis, water resources consulting, "
         "GovTech/public sector SaaS, implementation/customer success, solutions "
         "consulting, solutions engineering, sales engineering, and technical "
         "account management. Favor remote, hybrid, Bay Area, California, and "

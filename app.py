@@ -1650,10 +1650,10 @@ def page_leads(days: int):
             horizontal=True, key=f"sort_{days}",
         )
 
-    # ── Row 3: source ────────────────────────────────────────────────────
-    src_opt = st.radio(
+    # ── Row 3: source (dropdown to save space) ───────────────────────────
+    src_opt = st.selectbox(
         "Source", ["All"] + _sources,
-        horizontal=True, key=f"src_{days}",
+        key=f"src_{days}",
     )
 
     # Salary slider with live label
