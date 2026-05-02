@@ -1388,40 +1388,19 @@ def page_analytics():
         pulse_rows.append({"Category": cat, "This Week": tw, "Last Week": lw, "pct": pct, "new": lw == 0 and tw > 0})
     pulse_df = pd.DataFrame(pulse_rows)
 
-    p_chart, p_badges = st.columns([3, 1])
-    with p_chart:
-        fig = go.Figure()
-        fig.add_bar(x=pulse_df["Category"], y=pulse_df["Last Week"],
-                    name="Last Week", marker_color=f"rgba(148,163,184,0.35)")
-        fig.add_bar(x=pulse_df["Category"], y=pulse_df["This Week"],
-                    name="This Week",  marker_color=_PAL[1])
-        fig.update_layout(**_CHART, barmode="group",
-                          title=dict(text="New Listings: This Week vs Last", y=0.97),
-                          legend=dict(bgcolor="rgba(0,0,0,0)", orientation="h",
-                                      x=0.5, xanchor="center", y=-0.18))
-        fig.update_layout(margin=dict(l=20, r=20, t=52, b=40))
-        fig.update_xaxes(showgrid=False)
-        fig.update_yaxes(gridcolor="rgba(255,255,255,0.04)")
-        st.plotly_chart(fig, use_container_width=True, key="an_pulse")
-    with p_badges:
-        st.markdown("<br>", unsafe_allow_html=True)
-        for _, row in pulse_df.iterrows():
-            if row["new"]:
-                label = "NEW"
-                color = "#F59E0B"
-            elif row["pct"] >= 0:
-                label = f"↑ {row['pct']}%"
-                color = "#10B981"
-            else:
-                label = f"↓ {abs(row['pct'])}%"
-                color = "#EF4444"
-            st.markdown(
-                f'<div style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">'
-                f'  <div style="font-size:0.75rem;color:#9CA3AF;font-weight:600;">{row["Category"]}</div>'
-                f'  <div style="font-size:1.15rem;font-weight:800;color:{color};">{label}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+    fig = go.Figure()
+    fig.add_bar(x=pulse_df["Category"], y=pulse_df["Last Week"],
+                name="Last Week", marker_color="rgba(148,163,184,0.35)")
+    fig.add_bar(x=pulse_df["Category"], y=pulse_df["This Week"],
+                name="This Week",  marker_color=_PAL[1])
+    fig.update_layout(**_CHART, barmode="group",
+                      title=dict(text="New Listings: This Week vs Last", y=0.97),
+                      legend=dict(bgcolor="rgba(0,0,0,0)", orientation="h",
+                                  x=0.5, xanchor="center", y=-0.18))
+    fig.update_layout(margin=dict(l=20, r=20, t=52, b=40))
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(gridcolor="rgba(255,255,255,0.04)")
+    st.plotly_chart(fig, use_container_width=True, key="an_pulse")
 
     st.markdown('<hr style="border:none;border-top:1px solid rgba(124,58,237,0.12);margin:16px 0;">', unsafe_allow_html=True)
 
