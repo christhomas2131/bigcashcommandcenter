@@ -217,13 +217,66 @@ _SOURCE_ROLE_MAP = {
     "Water District": "CFM",
 }
 
+# Company-name substring → role category.
+# Checked case-insensitively against company_name before keyword matching,
+# so source-agnostic (catches Company Site, Firecrawl, JSearch, Adzuna, etc.).
+_COMPANY_ROLE_MAP: list[tuple[str, str]] = [
+    # ── DR / EM — government contractors ─────────────────────────────────────
+    ("hagerty",             "DR / EM"),
+    ("tidal basin",         "DR / EM"),
+    ("ac disaster",         "DR / EM"),
+    ("witt o'brien",        "DR / EM"),
+    ("witt obriens",        "DR / EM"),
+    ("guidehouse",          "DR / EM"),
+    ("icf",                 "DR / EM"),
+    ("tetra tech",          "DR / EM"),
+    ("aecom",               "DR / EM"),
+    ("stantec",             "DR / EM"),
+    ("cdm smith",           "DR / EM"),
+    ("fors marsh",          "DR / EM"),
+    ("cdr maguire",         "DR / EM"),
+    ("aptive",              "DR / EM"),
+    ("iem inc",             "DR / EM"),
+    ("iem,",                "DR / EM"),
+    ("michael baker",       "DR / EM"),
+    ("jacobs",              "DR / EM"),
+    ("arcadis",             "DR / EM"),
+    ("wood environment",    "DR / EM"),
+    ("wood plc",            "DR / EM"),
+    ("aptim",               "DR / EM"),
+    ("jeo consulting",      "DR / EM"),
+    ("eisneramper",         "DR / EM"),
+    ("cherry bekaert",      "DR / EM"),
+    ("fema contractor",     "DR / EM"),
+    # ── CFM — floodplain / water resources / hydrology engineering firms ──────
+    ("dewberry",            "CFM"),
+    ("west consultants",    "CFM"),
+    ("mead & hunt",         "CFM"),
+    ("mead and hunt",       "CFM"),
+    ("hr green",            "CFM"),
+    ("ayres associates",    "CFM"),
+    ("freese and nichols",  "CFM"),
+    ("freese & nichols",    "CFM"),
+    ("kimley-horn",         "CFM"),
+    ("kimley horn",         "CFM"),
+    ("hdr inc",             "CFM"),
+    ("hdr engineering",     "CFM"),
+    (" hdr ",               "CFM"),
+    ("wsp usa",             "CFM"),
+    (" wsp ",               "CFM"),
+]
+
 def classify(job: dict) -> str:
     if job.get("conference_source"):
         return "AI Startup CX"
     source = job.get("source") or ""
     if source in _SOURCE_ROLE_MAP:
         return _SOURCE_ROLE_MAP[source]
-    text = f"{job.get('role_title','').lower()} {job.get('company_name','').lower()}"
+    co_lower = (job.get("company_name") or "").lower()
+    for pattern, cat in _COMPANY_ROLE_MAP:
+        if pattern in co_lower:
+            return cat
+    text = f"{co_lower} {(job.get('role_title') or '').lower()}"
     for cat, kws in ROLE_CATEGORIES.items():
         if any(k in text for k in kws):
             return cat
