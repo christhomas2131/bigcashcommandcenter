@@ -51,7 +51,14 @@ def _fresh_conn() -> tuple:
     """Return (pool, conn), resetting the pool if the connection is stale."""
     pool = _get_pool()
     conn = pool.getconn()
-    if conn.closed:
+    try:
+        if conn.closed:
+            raise psycopg2.OperationalError("closed")
+        # Ping — catches server-side drops that conn.closed misses
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1")
+        conn.rollback()
+    except _STALE_ERRORS:
         try:
             pool.putconn(conn)
         except Exception:
