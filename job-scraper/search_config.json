@@ -12,7 +12,7 @@
       "max_results_per_query": 10
     },
     "conference_exhibitors": {
-      "enabled": false,
+      "enabled": true,
       "max_jobs_per_page": 25
     },
     "iaem": {
