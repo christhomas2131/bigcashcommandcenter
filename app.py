@@ -267,8 +267,6 @@ _COMPANY_ROLE_MAP: list[tuple[str, str]] = [
 ]
 
 def classify(job: dict) -> str:
-    if job.get("conference_source"):
-        return "CX"
     source = job.get("source") or ""
     if source in _SOURCE_ROLE_MAP:
         return _SOURCE_ROLE_MAP[source]
@@ -1095,7 +1093,7 @@ nav_col, content_col = st.columns([1, 4])
 def render_nav(col):
     with col:
         n_saved = len(st.session_state.saved_jobs)
-        n_cx    = sum(1 for j in all_jobs if j.get("conference_source") or classify(j) == "CX")
+        n_cx    = sum(1 for j in all_jobs if classify(j) == "CX")
         pages = [
             ("Analytics",                          "📊"),
             (f"All Jobs ({len(all_jobs)})",        "💼"),
@@ -1940,7 +1938,7 @@ def page_cx():
 
     st.markdown('<hr class="filter-sep">', unsafe_allow_html=True)
 
-    jobs = [j for j in all_jobs if j.get("conference_source") or classify(j) == "CX"]
+    jobs = [j for j in all_jobs if classify(j) == "CX"]
 
     if search:
         q    = search.lower()
