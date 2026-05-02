@@ -1154,8 +1154,6 @@ if _toast_msg:
 # Shared: render_job_cards
 # ─────────────────────────────────────────────────────────────────────────────
 
-_PAGE_SIZE = 30
-
 def render_job_cards(jobs: list, key_prefix: str = ""):
     if not jobs:
         st.markdown(
@@ -1168,15 +1166,9 @@ def render_job_cards(jobs: list, key_prefix: str = ""):
         )
         return
 
-    # Pagination
-    _limit_key = f"_limit_{key_prefix}"
-    if _limit_key not in st.session_state:
-        st.session_state[_limit_key] = _PAGE_SIZE
-    visible = jobs[: st.session_state[_limit_key]]
-
     card_cols = st.columns(3, gap="medium")
 
-    for i, job in enumerate(visible):
+    for i, job in enumerate(jobs):
         col       = card_cols[i % 3]
         jid       = job["id"]
         pc        = PRIORITY_COLORS.get(job.get("priority", "Medium"), "#6B7280")
@@ -1287,25 +1279,11 @@ def render_job_cards(jobs: list, key_prefix: str = ""):
                     show_job_modal(job)
 
 
-    # Show more / counter
-    remaining = len(jobs) - len(visible)
-    if remaining > 0:
-        st.markdown("<br>", unsafe_allow_html=True)
-        bc, _ = st.columns([1, 3])
-        with bc:
-            if st.button(
-                f"Show {min(remaining, _PAGE_SIZE)} more  ({len(visible)} of {len(jobs)})",
-                key=f"more_{key_prefix}",
-                use_container_width=True,
-            ):
-                st.session_state[_limit_key] += _PAGE_SIZE
-                st.rerun()
-    else:
-        st.markdown(
-            f'<div style="text-align:center;padding:14px 0;font-size:0.72rem;color:#374151;">'
-            f'Showing all {len(jobs)} listings</div>',
-            unsafe_allow_html=True,
-        )
+    st.markdown(
+        f'<div style="text-align:center;padding:14px 0;font-size:0.72rem;color:#374151;">'
+        f'Showing all {len(jobs)} listings</div>',
+        unsafe_allow_html=True,
+    )
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Page: Analytics
@@ -1682,7 +1660,6 @@ def page_leads(days: int):
     _sig_key = f"_sig_l{days}"
     if st.session_state.get(_sig_key) != _filter_sig:
         st.session_state[_sig_key] = _filter_sig
-        st.session_state[f"_limit_l{days}"] = _PAGE_SIZE
 
     jobs = load_leads(days_opt)
 
