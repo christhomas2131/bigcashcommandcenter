@@ -82,7 +82,7 @@ try:
 
     # Navigation params — page is always applied (enables company links, shareable URLs)
     # role/q/days are only applied once on first load to avoid overriding in-session widget state
-    _VALID_PAGES = ("Analytics", "All Jobs", "New This Week", "Saved", "Fetch New Jobs")
+    _VALID_PAGES = ("Analytics", "All Jobs", "New This Week", "CX", "Saved", "Fetch New Jobs")
     if "page" in _p and _p["page"] in _VALID_PAGES:
         st.session_state.page = _p["page"]
     if not st.session_state.get("_url_params_loaded"):
@@ -108,6 +108,10 @@ except Exception:
 PRIORITY_COLORS = {"High": "#EF4444", "Medium": "#F59E0B", "Low": "#6B7280"}
 
 ROLE_CATEGORIES = {
+    "AI Startup CX": [
+        "forward deployed", "forward-deployed", "developer advocate",
+        "developer relations", "customer engineer", "professional services engineer",
+    ],
     "DR / EM": [
         "disaster", "emergency", "fema", "hazard", "mitigation",
         "resilience", "public assistance", "cdbg", "recovery", "homeland",
@@ -116,7 +120,9 @@ ROLE_CATEGORIES = {
     "CFM": [
         "floodplain", "flood plain", "nfip", "cfm", "certified floodplain",
         "floodplain manager", "floodplain administrator", "flood insurance",
-        "stormwater", "watershed", "flood mitigation",
+        "stormwater", "watershed", "flood mitigation", "hydrology",
+        "hydraulic", "hec-ras", "water resources", "flood risk",
+        "water district", "flood control",
     ],
     "GovTech": [
         "govtech", "government", "public sector", "federal", "civic",
@@ -149,11 +155,12 @@ _PAL = ["#2DD4BF", "#A78BFA", "#FBBF24", "#FB7185", "#22D3EE", "#94A3B8"]
 
 # Category → palette color (consistent mapping)
 _CAT_COLOR = {
-    "DR / EM":      _PAL[0],   # teal
-    "CFM":          _PAL[3],   # rose
-    "GovTech":      _PAL[1],   # purple
-    "Tech / Sales": _PAL[2],   # amber
-    "Other":        _PAL[5],   # slate
+    "DR / EM":       _PAL[0],    # teal
+    "CFM":           _PAL[3],    # rose
+    "GovTech":       _PAL[1],    # purple
+    "Tech / Sales":  _PAL[2],    # amber
+    "AI Startup CX": "#F59E0B",  # gold
+    "Other":         _PAL[5],    # slate
 }
 
 # Work type → palette color
@@ -167,10 +174,11 @@ _WT_COLOR = {
 
 # Category → CSS class for card left border
 _CAT_BORDER_CLASS = {
-    "DR / EM":      "cat-dr",
-    "CFM":          "cat-cfm",
-    "GovTech":      "cat-gov",
-    "Tech / Sales": "cat-tech",
+    "DR / EM":       "cat-dr",
+    "CFM":           "cat-cfm",
+    "GovTech":       "cat-gov",
+    "Tech / Sales":  "cat-tech",
+    "AI Startup CX": "cat-cx",
 }
 
 # Priority → dot color
@@ -203,12 +211,33 @@ def relative_time(d) -> str:
     return f"{delta // 30} months ago"
 
 
+_SOURCE_ROLE_MAP = {
+    "IAEM":          "DR / EM",
+    "ASFPM":         "CFM",
+    "Water District": "CFM",
+}
+
 def classify(job: dict) -> str:
+    if job.get("conference_source"):
+        return "AI Startup CX"
+    source = job.get("source") or ""
+    if source in _SOURCE_ROLE_MAP:
+        return _SOURCE_ROLE_MAP[source]
     text = f"{job.get('role_title','').lower()} {job.get('company_name','').lower()}"
     for cat, kws in ROLE_CATEGORIES.items():
         if any(k in text for k in kws):
             return cat
     return "Other"
+
+
+def _role_relevance(job: dict, role: str) -> int:
+    """Keyword hit count for sorting within a category — higher = more on-target."""
+    kws    = ROLE_CATEGORIES.get(role, [])
+    title  = (job.get("role_title") or "").lower()
+    co     = (job.get("company_name") or "").lower()
+    score  = sum(3 for k in kws if k in title) + sum(1 for k in kws if k in co)
+    pri    = {"High": 5, "Medium": 2, "Low": 0}.get(job.get("priority") or "Medium", 2)
+    return score + pri
 
 
 def company_domain(name: str) -> str:
@@ -676,6 +705,7 @@ section[data-testid="column"]:first-child button {
 .job-card.cat-cfm    { border-left: 3px solid #FB7185; }
 .job-card.cat-gov    { border-left: 3px solid #A78BFA; }
 .job-card.cat-tech   { border-left: 3px solid #FBBF24; }
+.job-card.cat-cx     { border-left: 3px solid #F59E0B; }
 
 /* Priority dot (top-right of card when category also present) */
 .pri-dot {
@@ -1003,10 +1033,12 @@ nav_col, content_col = st.columns([1, 4])
 def render_nav(col):
     with col:
         n_saved = len(st.session_state.saved_jobs)
+        n_cx    = sum(1 for j in all_jobs if j.get("conference_source") or classify(j) == "AI Startup CX")
         pages = [
             ("Analytics",                          "📊"),
             (f"All Jobs ({len(all_jobs)})",        "💼"),
             (f"New This Week ({len(leads_7d)})",    "✨"),
+            (f"CX ({n_cx})",                        "🤝"),
             (f"Saved ({n_saved})",                  "🔖"),
             ("Fetch New Jobs",                       "⚙️"),
         ]
@@ -1124,7 +1156,16 @@ def render_job_cards(jobs: list, key_prefix: str = ""):
         wt_bg        = "#0d2035" if "remote" in work_type.lower() else "#1a1f35"
         wt_color     = "#67E8F9" if "remote" in work_type.lower() else "#93C5FD"
         wt_tag       = f'<span class="tag" style="background:{wt_bg};color:{wt_color};">{_html.escape(work_type)}</span>' if work_type else ""
-        src_tag      = f'<span class="tag" style="background:#0d2218;color:#6EE7B7;">{_html.escape(source)}</span>' if source else ""
+        conf_src     = job.get("conference_source") or ""
+        src_tag      = (f'<span class="tag" style="background:#0d2218;color:#6EE7B7;">{_html.escape(source)}</span>'
+                        if source and not conf_src else "")
+        if conf_src:
+            _conf_label = "Multi-Conf" if "," in conf_src else conf_src
+            conf_tag = (f'<span class="tag" style="background:#2d1a00;color:#F59E0B;'
+                        f'border:1px solid rgba(245,158,11,0.3);" title="{_html.escape(conf_src)}">'
+                        f'🏆 {_html.escape(_conf_label)}</span>')
+        else:
+            conf_tag = ""
         applied_tag  = '<span class="tag" style="background:#064e3b;color:#34D399;">✓ Applied</span>' if is_applied else ""
         apply_html   = f'<a href="{job_url}" target="_blank" class="apply-link">Apply →</a>' if job_url else '<span style="color:#374151;font-size:0.72rem;">No link</span>'
 
@@ -1149,7 +1190,7 @@ def render_job_cards(jobs: list, key_prefix: str = ""):
                 f'    </div>'
                 f'  </div>'
                 f'  <div class="card-location">{"📍 " + safe_loc if safe_loc else ""}</div>'
-                f'  <div class="card-tags">{wt_tag}{src_tag}{applied_tag}</div>'
+                f'  <div class="card-tags">{wt_tag}{src_tag}{conf_tag}{applied_tag}</div>'
                 f'  <div class="card-footer">'
                 f'    <span class="card-date">Posted {rel_date}</span>'
                 f'    {apply_html}'
@@ -1532,7 +1573,7 @@ def page_leads(days: int):
             st.rerun()
 
     # ── Row 2: role · work type · source · sort ───────────────────────────
-    _sources = sorted({j.get("source") or "Unknown" for j in all_jobs if j.get("source")})
+    _sources = sorted({j.get("source") or "Unknown" for j in all_jobs if j.get("source") and j.get("source") != "Conference Exhibitor"})
     ff1, ff2, ff3, ff4 = st.columns([3, 2, 2, 2])
     with ff1:
         role_opt = st.radio(
@@ -1588,12 +1629,7 @@ def page_leads(days: int):
     jobs = load_leads(days_opt)
 
     if role_opt != "All":
-        kws  = ROLE_CATEGORIES[role_opt]
-        jobs = [j for j in jobs if any(
-            k in (j.get("role_title") or "").lower() or
-            k in (j.get("company_name") or "").lower()
-            for k in kws
-        )]
+        jobs = [j for j in jobs if classify(j) == role_opt]
 
     if wt_opt != "All":
         jobs = [j for j in jobs if (j.get("work_type") or "").lower() == wt_opt.lower()]
@@ -1619,7 +1655,9 @@ def page_leads(days: int):
         jobs = sorted(jobs, key=lambda j: _pri_order.get(j.get("priority", "Medium"), 1))
     elif sort_opt == "Date Posted":
         jobs = sorted(jobs, key=lambda j: j.get("date_added") or date.min, reverse=True)
-    # "Newest" = default DB order (imported_desc), already sorted
+    elif role_opt != "All":
+        # Intelligent: strongest keyword match first; ties keep import-date order
+        jobs = sorted(jobs, key=lambda j: _role_relevance(j, role_opt), reverse=True)
 
     # ── Quick stats banner ────────────────────────────────────────────────
     n_remote    = sum(1 for j in jobs if (j.get("work_type") or "").lower() == "remote")
@@ -1812,6 +1850,63 @@ def page_ingestion():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Page: AI Startup CX
+# ─────────────────────────────────────────────────────────────────────────────
+
+def page_cx():
+    st.markdown("### 🤝 AI Startup CX")
+    st.markdown(
+        '<div style="font-size:0.8rem;color:#6B7280;margin:-8px 0 14px;">'
+        'Customer-facing roles at DeepLearning.AI conference exhibitors and AI startups. '
+        'Solutions engineers, customer success, implementation, developer relations.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    fc1, fc2, fc3 = st.columns([4, 1, 1])
+    with fc1:
+        search = st.text_input(
+            "Search", placeholder="Company, title, location…",
+            label_visibility="collapsed", key="cx_search",
+        )
+    with fc2:
+        sort_opt = st.radio("Sort", ["Newest", "Priority"], horizontal=True, key="cx_sort")
+    with fc3:
+        if st.button("⟳ Refresh", key="cx_refresh", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+
+    st.markdown('<hr class="filter-sep">', unsafe_allow_html=True)
+
+    jobs = [j for j in all_jobs if j.get("conference_source") or classify(j) == "AI Startup CX"]
+
+    if search:
+        q    = search.lower()
+        jobs = [j for j in jobs if
+                q in (j.get("company_name") or "").lower() or
+                q in (j.get("role_title") or "").lower()]
+
+    _pri_order = {"High": 0, "Medium": 1, "Low": 2}
+    if sort_opt == "Priority":
+        jobs = sorted(jobs, key=lambda j: _pri_order.get(j.get("priority", "Medium"), 1))
+
+    n_conf  = sum(1 for j in jobs if j.get("conference_source"))
+    n_today = sum(1 for j in jobs if j.get("date_added") and (date.today() - j["date_added"]).days == 0)
+    banner_parts = [f'<span style="color:#9CA3AF;">{len(jobs)} CX roles</span>']
+    if n_conf:
+        banner_parts.append(f'<span style="color:#F59E0B;">🏆 {n_conf} exhibitor</span>')
+    if n_today:
+        banner_parts.append(f'<span style="color:#F59E0B;">🔥 {n_today} today</span>')
+    st.markdown(
+        '<div style="font-size:0.75rem;margin-bottom:10px;">' +
+        ' · '.join(banner_parts) + '</div>',
+        unsafe_allow_html=True,
+    )
+
+    render_job_cards(jobs, key_prefix="cx")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Route
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1822,6 +1917,8 @@ with content_col:
         page_leads(days=90)
     elif page.startswith("New This Week"):
         page_leads(days=7)
+    elif page.startswith("CX"):
+        page_cx()
     elif page.startswith("Saved"):
         page_saved()
     elif page == "Fetch New Jobs":
