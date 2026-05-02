@@ -1,0 +1,6 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "python -m ingestion.run_ingestion"
+cronSchedule = "0 0 */3 * *"
