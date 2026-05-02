@@ -108,7 +108,7 @@ except Exception:
 PRIORITY_COLORS = {"High": "#EF4444", "Medium": "#F59E0B", "Low": "#6B7280"}
 
 ROLE_CATEGORIES = {
-    "AI Startup CX": [
+    "CX": [
         "forward deployed", "forward-deployed", "developer advocate",
         "developer relations", "customer engineer", "professional services engineer",
     ],
@@ -159,7 +159,7 @@ _CAT_COLOR = {
     "CFM":           _PAL[3],    # rose
     "GovTech":       _PAL[1],    # purple
     "Tech / Sales":  _PAL[2],    # amber
-    "AI Startup CX": "#F59E0B",  # gold
+    "CX": "#F59E0B",  # gold
     "Other":         _PAL[5],    # slate
 }
 
@@ -178,7 +178,7 @@ _CAT_BORDER_CLASS = {
     "CFM":           "cat-cfm",
     "GovTech":       "cat-gov",
     "Tech / Sales":  "cat-tech",
-    "AI Startup CX": "cat-cx",
+    "CX": "cat-cx",
 }
 
 # Priority → dot color
@@ -268,7 +268,7 @@ _COMPANY_ROLE_MAP: list[tuple[str, str]] = [
 
 def classify(job: dict) -> str:
     if job.get("conference_source"):
-        return "AI Startup CX"
+        return "CX"
     source = job.get("source") or ""
     if source in _SOURCE_ROLE_MAP:
         return _SOURCE_ROLE_MAP[source]
@@ -1095,7 +1095,7 @@ nav_col, content_col = st.columns([1, 4])
 def render_nav(col):
     with col:
         n_saved = len(st.session_state.saved_jobs)
-        n_cx    = sum(1 for j in all_jobs if j.get("conference_source") or classify(j) == "AI Startup CX")
+        n_cx    = sum(1 for j in all_jobs if j.get("conference_source") or classify(j) == "CX")
         pages = [
             ("Analytics",                          "📊"),
             (f"All Jobs ({len(all_jobs)})",        "💼"),
@@ -1912,11 +1912,11 @@ def page_ingestion():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Page: AI Startup CX
+# Page: CX
 # ─────────────────────────────────────────────────────────────────────────────
 
 def page_cx():
-    st.markdown("### 🤝 AI Startup CX")
+    st.markdown("### 🤝 CX")
     st.markdown(
         '<div style="font-size:0.8rem;color:#6B7280;margin:-8px 0 14px;">'
         'Customer-facing roles at DeepLearning.AI conference exhibitors and AI startups. '
@@ -1940,7 +1940,7 @@ def page_cx():
 
     st.markdown('<hr class="filter-sep">', unsafe_allow_html=True)
 
-    jobs = [j for j in all_jobs if j.get("conference_source") or classify(j) == "AI Startup CX"]
+    jobs = [j for j in all_jobs if j.get("conference_source") or classify(j) == "CX"]
 
     if search:
         q    = search.lower()
