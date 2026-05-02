@@ -111,6 +111,9 @@ ROLE_CATEGORIES = {
     "CX": [
         "forward deployed", "forward-deployed", "developer advocate",
         "developer relations", "customer engineer", "professional services engineer",
+        "customer success", "customer solutions", "customer ops",
+        "customer experience", "customer trainer", "customer onboarding",
+        "customer support", "client success", "client solutions",
     ],
     "DR / EM": [
         "disaster", "emergency", "fema", "hazard", "mitigation",
@@ -130,7 +133,7 @@ ROLE_CATEGORIES = {
     ],
     "Tech / Sales": [
         "solutions engineer", "sales engineer", "pre-sales", "account executive",
-        "account manager", "customer success", "technical account",
+        "account manager", "technical account",
         "partner solutions", "revenue enablement",
     ],
 }
