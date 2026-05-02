@@ -1098,7 +1098,7 @@ def render_nav(col):
             ("Analytics",                          "📊"),
             (f"All Jobs ({len(all_jobs)})",        "💼"),
             (f"New This Week ({len(leads_7d)})",    "✨"),
-            (f"CX ({n_cx})",                        "🤝"),
+            (f"CX ({n_cx})",                        ""),
             (f"Saved ({n_saved})",                  "🔖"),
             ("Fetch New Jobs",                       "⚙️"),
         ]
@@ -1106,7 +1106,7 @@ def render_nav(col):
             base   = label.split(" (")[0]
             active = st.session_state.page == base
             if st.button(
-                f"{icon}  {label}",
+                f"{icon}  {label}".strip() if icon else label,
                 key=f"nav_{base}",
                 use_container_width=True,
                 type="primary" if active else "secondary",
