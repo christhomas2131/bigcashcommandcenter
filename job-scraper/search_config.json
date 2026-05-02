@@ -1,5 +1,20 @@
 {
   "apis": {
+    "firecrawl_companies": {
+      "enabled": true,
+      "max_jobs_per_page": 25
+    },
+    "water_districts": {
+      "enabled": true
+    },
+    "tavily": {
+      "enabled": true,
+      "max_results_per_query": 10
+    },
+    "conference_exhibitors": {
+      "enabled": false,
+      "max_jobs_per_page": 25
+    },
     "iaem": {
       "enabled": true,
       "max_pages": 6
@@ -34,7 +49,15 @@
         {"keyword": "grants management specialist HUD"},
         {"keyword": "homeland security emergency management"},
         {"keyword": "disaster recovery program analyst"},
-        {"keyword": "resilience planning coordinator"}
+        {"keyword": "resilience planning coordinator"},
+        {"keyword": "certified floodplain manager"},
+        {"keyword": "hydraulic engineer water resources"},
+        {"keyword": "hydrology engineer"},
+        {"keyword": "stormwater program manager"},
+        {"keyword": "flood risk management"},
+        {"keyword": "NFIP coordinator"},
+        {"keyword": "floodplain mapping specialist"},
+        {"keyword": "HEC-RAS engineer"}
       ]
     },
     "firecrawl": {
@@ -245,14 +268,40 @@
       "queries": [
         "floodplain manager",
         "floodplain administrator",
-        "NFIP coordinator",
-        "certified floodplain manager",
+        "floodplain management specialist",
         "floodplain management consultant",
-        "stormwater program manager",
-        "flood insurance specialist",
         "floodplain compliance specialist",
+        "NFIP coordinator",
+        "NFIP specialist",
+        "certified floodplain manager",
+        "CFM engineer",
+        "CFM consultant",
+        "flood insurance specialist",
+        "flood insurance review",
+        "flood risk analyst",
+        "flood risk management",
+        "flood mitigation specialist",
+        "flood mitigation consultant",
+        "flood control engineer",
+        "flood mapping specialist",
+        "hydraulic engineer",
+        "hydraulic modeling engineer",
+        "hydraulic engineer floodplain",
+        "hydrology engineer",
+        "hydrology and hydraulics engineer",
+        "water resources engineer",
+        "water resources engineer floodplain",
+        "water resources consultant",
         "watershed program manager",
-        "flood mitigation specialist"
+        "watershed engineer",
+        "stormwater engineer",
+        "stormwater program manager",
+        "stormwater manager",
+        "stormwater consultant",
+        "HEC-RAS modeler",
+        "HEC-RAS engineer",
+        "FEMA flood map engineer",
+        "FEMA mapping consultant"
       ],
       "target_companies": [
         "Dewberry",
@@ -264,7 +313,17 @@
         "APTIM",
         "Tetra Tech",
         "Freese and Nichols",
-        "Stantec"
+        "Stantec",
+        "WEST Consultants",
+        "Mead and Hunt",
+        "HR Green",
+        "Ayres Associates",
+        "HDR",
+        "Kimley-Horn",
+        "CDM Smith",
+        "Jacobs",
+        "Woolpert",
+        "Atkins"
       ],
       "default_priority": "Medium"
     },

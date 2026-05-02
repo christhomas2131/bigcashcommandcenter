@@ -145,12 +145,13 @@ def scrape_asfpm(max_pages: int = 4) -> list[dict]:
     Returns a list of normalised job dicts.
     """
     session = cloudscraper.create_scraper()
+    session.verify = False  # must be set on session, not per-request (Python 3.10+ ssl compat)
     all_jobs: list[dict] = []
 
     for pg in range(1, max_pages + 1):
         url = SEARCH_URL if pg == 1 else f"{SEARCH_URL}?page={pg}"
         try:
-            resp = session.get(url, timeout=20, verify=False)
+            resp = session.get(url, timeout=20)
             resp.raise_for_status()
         except Exception as exc:
             log.error(f"ASFPM: failed to fetch page {pg} — {exc}")
