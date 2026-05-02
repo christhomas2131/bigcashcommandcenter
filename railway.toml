@@ -2,5 +2,4 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "python -m ingestion.run_ingestion"
-cronSchedule = "0 0 */3 * *"
+startCommand = "streamlit run app.py --server.address=0.0.0.0 --server.port=$PORT --server.headless=true"
