@@ -137,6 +137,21 @@ ROLE_CATEGORIES = {
 
 GENERIC_LOCS = {"us", "usa", "united states", "unknown", "n/a", "remote", ""}
 
+_BAY_AREA_TERMS = {
+    "san francisco", "sf", "oakland", "berkeley", "marin", "richmond",
+    "alameda", "contra costa", "silicon valley", "san jose", "san mateo",
+    "south bay", "bay area", "emeryville", "walnut creek", "fremont",
+    "santa clara", "sunnyvale", "palo alto", "mountain view",
+}
+
+def _is_bay_area(job: dict) -> bool:
+    loc = (job.get("location") or "").lower()
+    return any(t in loc for t in _BAY_AREA_TERMS)
+
+def _is_california(job: dict) -> bool:
+    loc = (job.get("location") or "").lower()
+    return _is_bay_area(job) or ", ca" in loc or "california" in loc
+
 STOP_WORDS = {
     "manager", "senior", "associate", "and", "of", "the", "for", "in", "a",
     "an", "to", "with", "at", "specialist", "coordinator", "lead", "director",
@@ -1608,7 +1623,7 @@ def page_leads(days: int):
             st.cache_data.clear()
             st.rerun()
 
-    # ── Row 2: role · work type · source · sort ───────────────────────────
+    # ── Row 2: role · work type · location · sort ────────────────────────
     _sources = sorted({j.get("source") or "Unknown" for j in all_jobs if j.get("source") and j.get("source") != "Conference Exhibitor"})
     ff1, ff2, ff3, ff4 = st.columns([3, 2, 2, 2])
     with ff1:
@@ -1622,15 +1637,21 @@ def page_leads(days: int):
             horizontal=True, key=f"wt_{days}",
         )
     with ff3:
-        src_opt = st.radio(
-            "Source", ["All"] + _sources,
-            horizontal=True, key=f"src_{days}",
+        loc_opt = st.radio(
+            "Location", ["All", "Bay Area", "California"],
+            horizontal=True, key=f"loc_{days}",
         )
     with ff4:
         sort_opt = st.radio(
             "Sort", ["Newest", "Priority", "Date Posted"],
             horizontal=True, key=f"sort_{days}",
         )
+
+    # ── Row 3: source ────────────────────────────────────────────────────
+    src_opt = st.radio(
+        "Source", ["All"] + _sources,
+        horizontal=True, key=f"src_{days}",
+    )
 
     # Salary slider with live label
     sal_jobs = [j for j in all_jobs if j.get("salary_max") and j["salary_max"] > 0]
@@ -1656,7 +1677,7 @@ def page_leads(days: int):
 
     # ── Load + filter ─────────────────────────────────────────────────────
     # Reset pagination when filters change
-    _filter_sig = (search, role_opt, wt_opt, src_opt, sort_opt, days_opt, sal_range)
+    _filter_sig = (search, role_opt, wt_opt, loc_opt, src_opt, sort_opt, days_opt, sal_range)
     _sig_key = f"_sig_l{days}"
     if st.session_state.get(_sig_key) != _filter_sig:
         st.session_state[_sig_key] = _filter_sig
@@ -1668,6 +1689,11 @@ def page_leads(days: int):
 
     if wt_opt != "All":
         jobs = [j for j in jobs if (j.get("work_type") or "").lower() == wt_opt.lower()]
+
+    if loc_opt == "Bay Area":
+        jobs = [j for j in jobs if _is_bay_area(j)]
+    elif loc_opt == "California":
+        jobs = [j for j in jobs if _is_california(j)]
 
     if src_opt != "All":
         jobs = [j for j in jobs if (j.get("source") or "Unknown") == src_opt]
