@@ -218,28 +218,45 @@ def _fingerprint(company: str, title: str, url: str) -> str:
     return hashlib.md5(key.encode()).hexdigest()
 
 
-def _clean_title(raw: str) -> str:
+def _parse_title_and_location(raw: str) -> tuple[str, str]:
+    """
+    Firecrawl career pages return lines like:
+      **Title** \\ \\ Category•Full-time•City1; City2
+    Split at the first backslash: left = title, right = metadata with location.
+    """
     t = raw
     # Full markdown link [text](url) → text
     t = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", t)
-    # Leftover ](url) remnants
     t = re.sub(r"\]\([^)]*\)", "", t)
-    # Leading [ (broken link prefix)
     t = re.sub(r"^\[", "", t)
-    # Markdown bold/italic markers
     t = re.sub(r"\*{1,3}", "", t)
-    # Cut at first backslash — Firecrawl appends \\ \\ CATEGORY•TYPE•LOCATION
+
+    location = ""
     if "\\" in t:
-        t = t.split("\\")[0]
-    # HTML tags
+        parts = t.split("\\", 1)
+        title_part = parts[0]
+        meta = parts[1].lstrip("\\ ").strip() if len(parts) > 1 else ""
+        # meta looks like: "Category•Full-time•San Francisco; New York"
+        # or "Solutions•Full-time•Remote" — location is the last •-segment(s)
+        segments = [s.strip() for s in meta.split("•") if s.strip()]
+        # Skip work-type-looking segments; take the rest as location
+        _WORK_TYPE_WORDS = {"full-time", "part-time", "contract", "full time", "part time", "remote", "hybrid"}
+        loc_parts = [s for s in segments[1:] if s.lower() not in _WORK_TYPE_WORDS and len(s) > 2]
+        location = "; ".join(loc_parts)[:120]
+        t = title_part
+
     t = re.sub(r"<[^>]+>", "", t)
-    # Normalise whitespace
     t = re.sub(r"\s+", " ", t).strip(" -|:\t\r\n")
     t = re.sub(r"^(apply now|view job|job details|learn more)\s*[:|-]?\s*", "", t, flags=re.I)
-    return t[:160].strip()
+    return t[:160].strip(), location
 
 
-def _make_job(company: dict, title: str, url: str, page_url: str, conference_name: str) -> dict:
+def _clean_title(raw: str) -> str:
+    title, _ = _parse_title_and_location(raw)
+    return title
+
+
+def _make_job(company: dict, title: str, url: str, page_url: str, conference_name: str, location: str = "") -> dict:
     return {
         "company_name":       company["name"],
         "role_title":         title,
@@ -248,8 +265,8 @@ def _make_job(company: dict, title: str, url: str, page_url: str, conference_nam
         "date_applied":       None,
         "salary_min":         None,
         "salary_max":         None,
-        "location":           "",
-        "work_type":          detect_work_type(title),
+        "location":           location,
+        "work_type":          detect_work_type(f"{title} {location}"),
         "source":             "Conference Exhibitor",
         "conference_source":  conference_name,
         "job_url":            url,
@@ -267,7 +284,7 @@ def _extract_jobs(markdown: str, company: dict, conference_name: str, max_jobs: 
     jobs: list[dict] = []
 
     for label, href in re.findall(r"\[([^\]]{3,180})\]\(([^)\s]+)\)", markdown):
-        title = _clean_title(label)
+        title, location = _parse_title_and_location(label)
         if not title or len(title) < 8:
             continue
         if any(p in title.lower() or p in href.lower() for p in _SKIP_PATTERNS):
@@ -278,12 +295,12 @@ def _extract_jobs(markdown: str, company: dict, conference_name: str, max_jobs: 
         if job_url in seen:
             continue
         seen.add(job_url)
-        jobs.append(_make_job(company, title, job_url, page_url, conference_name))
+        jobs.append(_make_job(company, title, job_url, page_url, conference_name, location))
         if len(jobs) >= max_jobs:
             return jobs
 
     for line in markdown.splitlines():
-        title = _clean_title(line)
+        title, location = _parse_title_and_location(line)
         if len(title) < 8 or len(title) > 120:
             continue
         if not _is_cx(title):
@@ -292,7 +309,7 @@ def _extract_jobs(markdown: str, company: dict, conference_name: str, max_jobs: 
         if key in seen:
             continue
         seen.add(key)
-        jobs.append(_make_job(company, title, page_url, page_url, conference_name))
+        jobs.append(_make_job(company, title, page_url, page_url, conference_name, location))
         if len(jobs) >= max_jobs:
             break
 
