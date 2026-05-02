@@ -1093,12 +1093,10 @@ nav_col, content_col = st.columns([1, 4])
 def render_nav(col):
     with col:
         n_saved = len(st.session_state.saved_jobs)
-        n_cx    = sum(1 for j in all_jobs if classify(j) == "CX")
         pages = [
             ("Analytics",                          "📊"),
             (f"All Jobs ({len(all_jobs)})",        "💼"),
             (f"New This Week ({len(leads_7d)})",    "✨"),
-            (f"CX ({n_cx})",                        ""),
             (f"Saved ({n_saved})",                  "🔖"),
             ("Fetch New Jobs",                       "⚙️"),
         ]
