@@ -280,16 +280,25 @@ def classify(job: dict) -> str:
     for cat, kws in ROLE_CATEGORIES.items():
         if any(k in text for k in kws):
             return cat
+    # Fallback: scan description for keywords (catches generic titles at relevant orgs)
+    desc = (job.get("description_raw") or "")[:800].lower()
+    if desc:
+        for cat, kws in ROLE_CATEGORIES.items():
+            if any(k in desc for k in kws):
+                return cat
     return "Other"
 
 
 def _role_relevance(job: dict, role: str) -> int:
     """Keyword hit count for sorting within a category — higher = more on-target."""
-    kws    = ROLE_CATEGORIES.get(role, [])
-    title  = (job.get("role_title") or "").lower()
-    co     = (job.get("company_name") or "").lower()
-    score  = sum(3 for k in kws if k in title) + sum(1 for k in kws if k in co)
-    pri    = {"High": 5, "Medium": 2, "Low": 0}.get(job.get("priority") or "Medium", 2)
+    kws   = ROLE_CATEGORIES.get(role, [])
+    title = (job.get("role_title") or "").lower()
+    co    = (job.get("company_name") or "").lower()
+    desc  = (job.get("description_raw") or "")[:800].lower()
+    score = (sum(3 for k in kws if k in title)
+           + sum(1 for k in kws if k in co)
+           + sum(1 for k in kws if k in desc))
+    pri   = {"High": 5, "Medium": 2, "Low": 0}.get(job.get("priority") or "Medium", 2)
     return score + pri
 
 
